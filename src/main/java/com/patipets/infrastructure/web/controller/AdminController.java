@@ -1,0 +1,178 @@
+package com.patipets.infrastructure.web.controller;
+
+import com.patipets.core.application.useCase.ConsultarAdminDashboardUseCase;
+import com.patipets.core.application.useCase.GestionAnimalUseCase;
+import com.patipets.core.application.useCase.GestionRefugioUseCase;
+import com.patipets.core.application.useCase.GestionUsuarioUseCase;
+import com.patipets.core.domain.models.Refugio;
+import com.patipets.core.domain.models.SolicitudAdopcion;
+import com.patipets.core.domain.models.Usuario;
+import com.patipets.infrastructure.web.dto.AdminDashboardStatsResponseDTO;
+import com.patipets.infrastructure.web.dto.AdminUsuarioResponseDTO;
+import com.patipets.infrastructure.web.dto.ApiResponseDTO;
+import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
+import com.patipets.infrastructure.web.dto.SolicitudAdopcionResponseDTO;
+import com.patipets.infrastructure.web.dto.request.RefugioSolicitudRequestDTO;
+import com.patipets.infrastructure.web.dto.request.UsuarioUpdateRequestDTO;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/v1/admin")
+public class AdminController {
+
+    private final GestionRefugioUseCase gestionRefugioUseCase;
+    private final ConsultarAdminDashboardUseCase adminDashboardUseCase;
+    private final GestionUsuarioUseCase gestionUsuarioUseCase;
+    private final GestionAnimalUseCase gestionAnimalUseCase;
+
+    public AdminController(GestionRefugioUseCase gestionRefugioUseCase,
+                           ConsultarAdminDashboardUseCase adminDashboardUseCase,
+                           GestionUsuarioUseCase gestionUsuarioUseCase,
+                           GestionAnimalUseCase gestionAnimalUseCase) {
+        this.gestionRefugioUseCase = gestionRefugioUseCase;
+        this.adminDashboardUseCase = adminDashboardUseCase;
+        this.gestionUsuarioUseCase = gestionUsuarioUseCase;
+        this.gestionAnimalUseCase = gestionAnimalUseCase;
+    }
+
+    @PostMapping("/refugios")
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> solicitarRefugio(
+            @Valid @RequestBody RefugioSolicitudRequestDTO request) {
+        try {
+            Refugio refugio = gestionRefugioUseCase.solicitar(
+                    request.getNombre(), request.getDireccion(), request.getRegion(),
+                    request.getLatitud(), request.getLongitud(), request.getCapacidad());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponseDTO.ok("Solicitud de refugio creada", RefugioResponseDTO.fromDomain(refugio)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/refugios/pendientes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<List<RefugioResponseDTO>>> listarPendientes() {
+        List<Refugio> refugios = gestionRefugioUseCase.listarPendientes();
+        var dto = refugios.stream()
+                .map(RefugioResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    @PutMapping("/refugios/{id}/aprobar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> aprobarRefugio(@PathVariable Long id) {
+        try {
+            Refugio refugio = gestionRefugioUseCase.aprobar(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Refugio aprobado", RefugioResponseDTO.fromDomain(refugio)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/refugios/{id}/rechazar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> rechazarRefugio(@PathVariable Long id) {
+        try {
+            Refugio refugio = gestionRefugioUseCase.rechazar(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Refugio rechazado", RefugioResponseDTO.fromDomain(refugio)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/dashboard/estadisticas")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminDashboardStatsResponseDTO>> dashboardEstadisticas() {
+        var stats = adminDashboardUseCase.obtenerEstadisticasAdmin();
+        return ResponseEntity.ok(ApiResponseDTO.ok(AdminDashboardStatsResponseDTO.fromDomain(stats)));
+    }
+
+    @GetMapping("/usuarios")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<List<AdminUsuarioResponseDTO>>> listarUsuarios(
+            @RequestParam(required = false) String rol,
+            @RequestParam(required = false) Boolean activo,
+            @RequestParam(name = "fecha_desde", required = false) String fechaDesde,
+            @RequestParam(name = "fecha_hasta", required = false) String fechaHasta,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        List<Usuario> usuarios = gestionUsuarioUseCase.listar(rol, activo, fechaDesde, fechaHasta, page, size);
+        var dto = usuarios.stream()
+                .map(AdminUsuarioResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    @GetMapping("/usuarios/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminUsuarioResponseDTO>> obtenerUsuario(@PathVariable Long id) {
+        try {
+            Usuario usuario = gestionUsuarioUseCase.obtener(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok(AdminUsuarioResponseDTO.fromDomain(usuario)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/usuarios/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminUsuarioResponseDTO>> editarUsuario(
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioUpdateRequestDTO request) {
+        try {
+            Usuario usuario = gestionUsuarioUseCase.editar(id, request.getNombre(),
+                    request.getEmail(), request.getRol());
+            return ResponseEntity.ok(ApiResponseDTO.ok("Usuario actualizado", AdminUsuarioResponseDTO.fromDomain(usuario)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/usuarios/{id}/bloquear")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminUsuarioResponseDTO>> bloquearUsuario(@PathVariable Long id) {
+        try {
+            Usuario usuario = gestionUsuarioUseCase.bloquear(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Usuario bloqueado", AdminUsuarioResponseDTO.fromDomain(usuario)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/usuarios/{id}/desbloquear")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminUsuarioResponseDTO>> desbloquearUsuario(@PathVariable Long id) {
+        try {
+            Usuario usuario = gestionUsuarioUseCase.desbloquear(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Usuario desbloqueado", AdminUsuarioResponseDTO.fromDomain(usuario)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/solicitudes/pendientes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<List<SolicitudAdopcionResponseDTO>>> listarSolicitudesPendientes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        List<SolicitudAdopcion> solicitudes = gestionAnimalUseCase.listarSolicitudesPendientes(page, size);
+        var dto = solicitudes.stream()
+                .map(SolicitudAdopcionResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+}
