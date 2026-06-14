@@ -1,0 +1,14 @@
+.env
+target/
+*.iml
+.idea/
+*.class
+*.jar
+*.war
+*.log
+.DS_Store
+supabase/.branches/
+supabase/.temp/
+supabase/snippets/
+PatiPets.postman_collection.json
+SRS Patipets.md
