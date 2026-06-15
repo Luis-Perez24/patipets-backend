@@ -29,7 +29,7 @@ public class AuthService implements AuthUseCase {
         String hashedPassword = passwordEncoder.encode(password);
         Usuario nuevo = new Usuario(
                 null, nombre, email, hashedPassword,
-                Rol.CIUDADANO, null, true, LocalDateTime.now()
+                Rol.CIUDADANO, null, null, null, null, true, LocalDateTime.now()
         );
         return usuarioRepository.save(nuevo);
     }
@@ -59,6 +59,7 @@ public class AuthService implements AuthUseCase {
             Usuario actualizado = new Usuario(
                     usuario.getId(), usuario.getNombre(), usuario.getEmail(),
                     usuario.getPassword(), rol, usuario.getFotoPerfil(),
+                    usuario.getNumeroContacto(), usuario.getUbicacion(), usuario.getBiografia(),
                     usuario.isActivo(), usuario.getFechaRegistro()
             );
             return usuarioRepository.save(actualizado);
@@ -66,6 +67,23 @@ public class AuthService implements AuthUseCase {
             if (e.getMessage() != null && e.getMessage().contains("No puedes")) throw e;
             throw new IllegalArgumentException("Rol inválido: " + nuevoRol);
         }
+    }
+
+    @Override
+    public Usuario actualizarPerfil(Long usuarioId, String nombre, String numeroContacto,
+                                     String ubicacion, String biografia, String fotoPerfil) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        String nuevoNombre = nombre != null ? nombre : usuario.getNombre();
+        String nuevaFoto = fotoPerfil != null ? fotoPerfil : usuario.getFotoPerfil();
+        String nuevaBiografia = biografia != null ? biografia : usuario.getBiografia();
+        Usuario actualizado = new Usuario(
+                usuario.getId(), nuevoNombre, usuario.getEmail(),
+                usuario.getPassword(), usuario.getRol(), nuevaFoto,
+                numeroContacto, ubicacion, nuevaBiografia,
+                usuario.isActivo(), usuario.getFechaRegistro()
+        );
+        return usuarioRepository.save(actualizado);
     }
 
     @Override

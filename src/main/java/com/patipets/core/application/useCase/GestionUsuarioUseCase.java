@@ -8,6 +8,7 @@ public interface GestionUsuarioUseCase {
     Usuario obtener(Long id);
     Usuario bloquear(Long id);
     Usuario desbloquear(Long id);
-    Usuario editar(Long id, String nombre, String email, String rol);
+    Usuario editar(Long id, String nombre, String email, String rol,
+                   String numeroContacto, String ubicacion, String biografia);
     long contarTotal();
 }

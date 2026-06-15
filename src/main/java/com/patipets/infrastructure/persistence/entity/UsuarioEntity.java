@@ -28,6 +28,13 @@ public class UsuarioEntity {
     @Column(name = "foto_perfil")
     private String fotoPerfil;
 
+    @Column(name = "numero_contacto")
+    private String numeroContacto;
+
+    private String ubicacion;
+
+    private String biografia;
+
     @Column(nullable = false)
     private boolean activo;
 
@@ -48,6 +55,12 @@ public class UsuarioEntity {
     public void setRol(Rol rol) { this.rol = rol; }
     public String getFotoPerfil() { return fotoPerfil; }
     public void setFotoPerfil(String fotoPerfil) { this.fotoPerfil = fotoPerfil; }
+    public String getNumeroContacto() { return numeroContacto; }
+    public void setNumeroContacto(String numeroContacto) { this.numeroContacto = numeroContacto; }
+    public String getUbicacion() { return ubicacion; }
+    public void setUbicacion(String ubicacion) { this.ubicacion = ubicacion; }
+    public String getBiografia() { return biografia; }
+    public void setBiografia(String biografia) { this.biografia = biografia; }
     public boolean isActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo = activo; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }

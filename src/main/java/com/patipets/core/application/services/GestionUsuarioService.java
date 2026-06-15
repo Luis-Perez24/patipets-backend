@@ -36,7 +36,9 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         }
         Usuario actualizado = new Usuario(
                 usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getPassword(),
-                usuario.getRol(), usuario.getFotoPerfil(), false, usuario.getFechaRegistro()
+                usuario.getRol(), usuario.getFotoPerfil(),
+                usuario.getNumeroContacto(), usuario.getUbicacion(), usuario.getBiografia(),
+                false, usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);
     }
@@ -50,21 +52,29 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         }
         Usuario actualizado = new Usuario(
                 usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getPassword(),
-                usuario.getRol(), usuario.getFotoPerfil(), true, usuario.getFechaRegistro()
+                usuario.getRol(), usuario.getFotoPerfil(),
+                usuario.getNumeroContacto(), usuario.getUbicacion(), usuario.getBiografia(),
+                true, usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);
     }
 
     @Override
-    public Usuario editar(Long id, String nombre, String email, String rol) {
+    public Usuario editar(Long id, String nombre, String email, String rol,
+                          String numeroContacto, String ubicacion, String biografia) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + id));
         String nuevoNombre = nombre != null ? nombre : usuario.getNombre();
         String nuevoEmail = email != null ? email : usuario.getEmail();
         Rol nuevoRol = rol != null ? Rol.valueOf(rol.toUpperCase()) : usuario.getRol();
+        String nuevoNumeroContacto = numeroContacto != null ? numeroContacto : usuario.getNumeroContacto();
+        String nuevaUbicacion = ubicacion != null ? ubicacion : usuario.getUbicacion();
+        String nuevaBiografia = biografia != null ? biografia : usuario.getBiografia();
         Usuario actualizado = new Usuario(
                 id, nuevoNombre, nuevoEmail, usuario.getPassword(),
-                nuevoRol, usuario.getFotoPerfil(), usuario.isActivo(), usuario.getFechaRegistro()
+                nuevoRol, usuario.getFotoPerfil(),
+                nuevoNumeroContacto, nuevaUbicacion, nuevaBiografia,
+                usuario.isActivo(), usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);
     }

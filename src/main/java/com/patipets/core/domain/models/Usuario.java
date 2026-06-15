@@ -10,17 +10,25 @@ public class Usuario {
     private final String password;
     private final Rol rol;
     private final String fotoPerfil;
+    private final String numeroContacto;
+    private final String ubicacion;
+    private final String biografia;
     private final boolean activo;
     private final LocalDateTime fechaRegistro;
 
     public Usuario(Long id, String nombre, String email, String password,
-                   Rol rol, String fotoPerfil, boolean activo, LocalDateTime fechaRegistro) {
+                   Rol rol, String fotoPerfil, String numeroContacto,
+                   String ubicacion, String biografia,
+                   boolean activo, LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
         this.password = password;
         this.rol = rol;
         this.fotoPerfil = fotoPerfil;
+        this.numeroContacto = numeroContacto;
+        this.ubicacion = ubicacion;
+        this.biografia = biografia;
         this.activo = activo;
         this.fechaRegistro = fechaRegistro;
     }
@@ -31,6 +39,9 @@ public class Usuario {
     public String getPassword() { return password; }
     public Rol getRol() { return rol; }
     public String getFotoPerfil() { return fotoPerfil; }
+    public String getNumeroContacto() { return numeroContacto; }
+    public String getUbicacion() { return ubicacion; }
+    public String getBiografia() { return biografia; }
     public boolean isActivo() { return activo; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
 }

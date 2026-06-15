@@ -5,6 +5,7 @@ import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.security.JwtTokenProvider;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.request.ActivarRolRequestDTO;
+import com.patipets.infrastructure.web.dto.request.ActualizarPerfilRequestDTO;
 import com.patipets.infrastructure.web.dto.request.LoginRequestDTO;
 import com.patipets.infrastructure.web.dto.request.RegisterRequestDTO;
 import com.patipets.infrastructure.web.dto.response.AuthResponseDTO;
@@ -68,6 +69,29 @@ public class AuthController {
             Usuario usuarioActual = (Usuario) authentication.getPrincipal();
             Usuario usuario = authUseCase.activarRol(usuarioActual.getId(), request.getRol());
             return ResponseEntity.ok(ApiResponseDTO.ok("Rol actualizado",
+                    UsuarioResponseDTO.fromDomain(usuario)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponseDTO<Void>> logout() {
+        return ResponseEntity.ok(ApiResponseDTO.ok("Sesión cerrada exitosamente", null));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponseDTO<UsuarioResponseDTO>> actualizarPerfil(
+            Authentication authentication,
+            @Valid @RequestBody ActualizarPerfilRequestDTO request) {
+        try {
+            Usuario usuarioActual = (Usuario) authentication.getPrincipal();
+            Usuario usuario = authUseCase.actualizarPerfil(
+                    usuarioActual.getId(), request.getNombre(),
+                    request.getNumeroContacto(), request.getUbicacion(),
+                    request.getBiografia(), request.getFotoPerfil());
+            return ResponseEntity.ok(ApiResponseDTO.ok("Perfil actualizado",
                     UsuarioResponseDTO.fromDomain(usuario)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
