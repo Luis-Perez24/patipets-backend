@@ -68,6 +68,7 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
                 entity.getRaza(),
                 entity.getEdad(),
                 entity.getTamano(),
+                entity.getPersonalidad(),
                 entity.getEstadoSalud(),
                 entity.getHistoria(),
                 entity.getEstadoAdopcion(),
@@ -87,6 +88,7 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
         entity.setRaza(animal.getRaza());
         entity.setEdad(animal.getEdad());
         entity.setTamano(animal.getTamano());
+        entity.setPersonalidad(animal.getPersonalidad());
         entity.setEstadoSalud(animal.getEstadoSalud());
         entity.setHistoria(animal.getHistoria());
         entity.setEstadoAdopcion(animal.getEstadoAdopcion());

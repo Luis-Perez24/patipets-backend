@@ -23,6 +23,8 @@ public class AnimalRequestDTO {
     @NotBlank(message = "es obligatorio")
     private String tamano;
 
+    private String personalidad;
+
     @NotBlank(message = "es obligatorio")
     private String estadoSalud;
 
@@ -46,6 +48,8 @@ public class AnimalRequestDTO {
     public void setEdad(Integer edad) { this.edad = edad; }
     public String getTamano() { return tamano; }
     public void setTamano(String tamano) { this.tamano = tamano; }
+    public String getPersonalidad() { return personalidad; }
+    public void setPersonalidad(String personalidad) { this.personalidad = personalidad; }
     public String getEstadoSalud() { return estadoSalud; }
     public void setEstadoSalud(String estadoSalud) { this.estadoSalud = estadoSalud; }
     public String getHistoria() { return historia; }

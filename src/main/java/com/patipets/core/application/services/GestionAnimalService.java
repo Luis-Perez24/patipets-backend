@@ -32,15 +32,15 @@ public class GestionAnimalService implements GestionAnimalUseCase {
 
     @Override
     public Animal crearAnimal(String nombre, String especie, String raza, Integer edad,
-                               String tamano, String estadoSalud, String historia,
-                               Long refugioId, List<String> fotos) {
+                               String tamano, String personalidad, String estadoSalud,
+                               String historia, Long refugioId, List<String> fotos) {
         Refugio refugio = refugioRepository.findById(refugioId)
                 .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + refugioId));
         if (refugio.getEstado() != EstadoRefugio.APROBADO) {
             throw new IllegalArgumentException("No se pueden agregar animales a un refugio que no está aprobado");
         }
         Animal animal = new Animal(
-                null, nombre, especie, raza, edad, tamano, estadoSalud, historia,
+                null, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
                 EstadoAnimal.DISPONIBLE, refugioId, null, null, fotos, LocalDateTime.now()
         );
         return animalRepository.save(animal);
@@ -48,15 +48,16 @@ public class GestionAnimalService implements GestionAnimalUseCase {
 
     @Override
     public Animal actualizarAnimal(Long id, String nombre, String especie, String raza,
-                                    Integer edad, String tamano, String estadoSalud,
-                                    String historia, String estadoAdopcion, List<String> fotos) {
+                                    Integer edad, String tamano, String personalidad,
+                                    String estadoSalud, String historia,
+                                    String estadoAdopcion, List<String> fotos) {
         Animal existente = animalRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
         EstadoAnimal nuevoEstado = estadoAdopcion != null
                 ? EstadoAnimal.valueOf(estadoAdopcion.toUpperCase())
                 : existente.getEstadoAdopcion();
         Animal actualizado = new Animal(
-                id, nombre, especie, raza, edad, tamano, estadoSalud, historia,
+                id, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
                 nuevoEstado, existente.getRefugioId(), null, null, fotos, existente.getFechaRegistro()
         );
         return animalRepository.save(actualizado);
@@ -133,9 +134,9 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado"));
         animalRepository.save(new Animal(
                 animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
-                animal.getEdad(), animal.getTamano(), animal.getEstadoSalud(),
-                animal.getHistoria(), EstadoAnimal.ADOPTADO, animal.getRefugioId(),
-                null, null, animal.getFotos(), animal.getFechaRegistro()
+                animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
+                animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.ADOPTADO,
+                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
         ));
 
         List<SolicitudAdopcion> otrasPendientes = solicitudRepository.findByAnimalIdAndEstado(
@@ -179,9 +180,9 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado"));
         animalRepository.save(new Animal(
                 animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
-                animal.getEdad(), animal.getTamano(), animal.getEstadoSalud(),
-                animal.getHistoria(), EstadoAnimal.DISPONIBLE, animal.getRefugioId(),
-                null, null, animal.getFotos(), animal.getFechaRegistro()
+                animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
+                animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.DISPONIBLE,
+                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
         ));
         return solicitudRepository.save(actualizada);
     }

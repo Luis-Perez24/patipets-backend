@@ -14,6 +14,8 @@ public class AnimalResponseDTO {
     private Integer edad;
     private String tamano;
 
+    private String personalidad;
+
     @JsonProperty("estado_salud")
     private String estadoSalud;
 
@@ -38,6 +40,7 @@ public class AnimalResponseDTO {
         dto.raza = animal.getRaza();
         dto.edad = animal.getEdad();
         dto.tamano = animal.getTamano();
+        dto.personalidad = animal.getPersonalidad();
         dto.estadoSalud = animal.getEstadoSalud();
         dto.historia = animal.getHistoria();
         dto.estadoAdopcion = animal.getEstadoAdopcion().name();
@@ -53,6 +56,7 @@ public class AnimalResponseDTO {
     public String getRaza() { return raza; }
     public Integer getEdad() { return edad; }
     public String getTamano() { return tamano; }
+    public String getPersonalidad() { return personalidad; }
     public String getEstadoSalud() { return estadoSalud; }
     public String getHistoria() { return historia; }
     public String getEstadoAdopcion() { return estadoAdopcion; }

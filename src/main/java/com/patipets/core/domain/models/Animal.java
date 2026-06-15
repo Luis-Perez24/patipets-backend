@@ -11,6 +11,7 @@ public class Animal {
     private final String raza;
     private final Integer edad;
     private final String tamano;
+    private final String personalidad;
     private final String estadoSalud;
     private final String historia;
     private final EstadoAnimal estadoAdopcion;
@@ -21,7 +22,7 @@ public class Animal {
     private final LocalDateTime fechaRegistro;
 
     public Animal(Long id, String nombre, String especie, String raza, Integer edad,
-                  String tamano, String estadoSalud, String historia,
+                  String tamano, String personalidad, String estadoSalud, String historia,
                   EstadoAnimal estadoAdopcion, Long refugioId, String nombreRefugio,
                   String regionRefugio, List<String> fotos, LocalDateTime fechaRegistro) {
         this.id = id;
@@ -30,6 +31,7 @@ public class Animal {
         this.raza = raza;
         this.edad = edad;
         this.tamano = tamano;
+        this.personalidad = personalidad;
         this.estadoSalud = estadoSalud;
         this.historia = historia;
         this.estadoAdopcion = estadoAdopcion;
@@ -46,6 +48,7 @@ public class Animal {
     public String getRaza() { return raza; }
     public Integer getEdad() { return edad; }
     public String getTamano() { return tamano; }
+    public String getPersonalidad() { return personalidad; }
     public String getEstadoSalud() { return estadoSalud; }
     public String getHistoria() { return historia; }
     public EstadoAnimal getEstadoAdopcion() { return estadoAdopcion; }

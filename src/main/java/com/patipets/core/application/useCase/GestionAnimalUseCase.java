@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface GestionAnimalUseCase {
     Animal crearAnimal(String nombre, String especie, String raza, Integer edad,
-                       String tamano, String estadoSalud, String historia,
+                       String tamano, String personalidad, String estadoSalud, String historia,
                        Long refugioId, List<String> fotos);
     Animal actualizarAnimal(Long id, String nombre, String especie, String raza,
-                            Integer edad, String tamano, String estadoSalud,
-                            String historia, String estadoAdopcion, List<String> fotos);
+                            Integer edad, String tamano, String personalidad,
+                            String estadoSalud, String historia, String estadoAdopcion, List<String> fotos);
     void eliminarAnimal(Long id);
     List<Animal> listarPorRefugio(Long refugioId);
     SolicitudAdopcion solicitar(Long animalId, Long adoptanteId, String nombreCompleto,
