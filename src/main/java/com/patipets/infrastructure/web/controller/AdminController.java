@@ -47,7 +47,8 @@ public class AdminController {
         try {
             Refugio refugio = gestionRefugioUseCase.solicitar(
                     request.getNombre(), request.getDireccion(), request.getRegion(),
-                    request.getLatitud(), request.getLongitud(), request.getCapacidad());
+                    request.getComuna(), request.getLatitud(), request.getLongitud(),
+                    request.getCapacidad(), request.getEmail(), request.getNumeroContacto());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Solicitud de refugio creada", RefugioResponseDTO.fromDomain(refugio)));
         } catch (IllegalArgumentException e) {
@@ -132,7 +133,8 @@ public class AdminController {
             @Valid @RequestBody UsuarioUpdateRequestDTO request) {
         try {
             Usuario usuario = gestionUsuarioUseCase.editar(id, request.getNombre(),
-                    request.getEmail(), request.getRol());
+                    request.getEmail(), request.getRol(),
+                    request.getNumeroContacto(), request.getUbicacion(), request.getBiografia());
             return ResponseEntity.ok(ApiResponseDTO.ok("Usuario actualizado", AdminUsuarioResponseDTO.fromDomain(usuario)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

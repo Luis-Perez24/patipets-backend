@@ -15,11 +15,12 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     }
 
     @Override
-    public Refugio solicitar(String nombre, String direccion, String region,
-                              Double latitud, Double longitud, Integer capacidad) {
+    public Refugio solicitar(String nombre, String direccion, String region, String comuna,
+                              Double latitud, Double longitud, Integer capacidad,
+                              String email, String numeroContacto) {
         Refugio nuevo = new Refugio(
-                null, nombre, direccion, region,
-                latitud, longitud, capacidad, EstadoRefugio.PENDIENTE
+                null, nombre, direccion, region, comuna,
+                latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE
         );
         return refugioRepository.save(nuevo);
     }
@@ -33,8 +34,9 @@ public class GestionRefugioService implements GestionRefugioUseCase {
         }
         Refugio actualizado = new Refugio(
                 refugio.getId(), refugio.getNombre(), refugio.getDireccion(),
-                refugio.getRegion(), refugio.getLatitud(), refugio.getLongitud(),
-                refugio.getCapacidad(), EstadoRefugio.APROBADO
+                refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
+                refugio.getLongitud(), refugio.getCapacidad(),
+                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.APROBADO
         );
         return refugioRepository.save(actualizado);
     }
@@ -48,8 +50,9 @@ public class GestionRefugioService implements GestionRefugioUseCase {
         }
         Refugio actualizado = new Refugio(
                 refugio.getId(), refugio.getNombre(), refugio.getDireccion(),
-                refugio.getRegion(), refugio.getLatitud(), refugio.getLongitud(),
-                refugio.getCapacidad(), EstadoRefugio.RECHAZADO
+                refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
+                refugio.getLongitud(), refugio.getCapacidad(),
+                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.RECHAZADO
         );
         return refugioRepository.save(actualizado);
     }

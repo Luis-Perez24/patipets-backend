@@ -19,11 +19,18 @@ public class RefugioEntity {
     @Column(nullable = false)
     private String region;
 
+    private String comuna;
+
     private Double latitud;
 
     private Double longitud;
 
     private Integer capacidad;
+
+    private String email;
+
+    @Column(name = "numero_contacto")
+    private String numeroContacto;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -39,12 +46,18 @@ public class RefugioEntity {
     public void setDireccion(String direccion) { this.direccion = direccion; }
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
+    public String getComuna() { return comuna; }
+    public void setComuna(String comuna) { this.comuna = comuna; }
     public Double getLatitud() { return latitud; }
     public void setLatitud(Double latitud) { this.latitud = latitud; }
     public Double getLongitud() { return longitud; }
     public void setLongitud(Double longitud) { this.longitud = longitud; }
     public Integer getCapacidad() { return capacidad; }
     public void setCapacidad(Integer capacidad) { this.capacidad = capacidad; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getNumeroContacto() { return numeroContacto; }
+    public void setNumeroContacto(String numeroContacto) { this.numeroContacto = numeroContacto; }
     public EstadoRefugio getEstado() { return estado; }
     public void setEstado(EstadoRefugio estado) { this.estado = estado; }
 }
