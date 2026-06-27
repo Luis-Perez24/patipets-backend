@@ -24,7 +24,7 @@ test:
 # Deploy via SSH con RSA PEM key y Debian estable
 deploy:
   stage: deploy
-  image: debian:stable-slim
+  image: ubuntu:20.04
   variables:
     GIT_STRATEGY: none
   before_script:
