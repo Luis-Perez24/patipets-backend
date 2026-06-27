@@ -21,7 +21,7 @@ test:
   only:
     - develop
 
-# Usa RSA key para compatibilidad con Alpine libcrypto
+# Docker image Debian para compatibilidad con llave RSA PEM
 deploy:
   stage: deploy
   image: debian:stable-slim
