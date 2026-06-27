@@ -28,12 +28,12 @@ deploy:
   variables:
     GIT_STRATEGY: none
   before_script:
-    - apt-get update -qq && apt-get install -y -qq openssh-client
-    - chmod 600 "$VPS_SSH_KEY"
+    - apt-get update -qq && apt-get install -y -qq openssh-client > /dev/null 2>&1
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - cp "$VPS_SSH_KEY" ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
     - ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
   script:
-    - ssh -i "$VPS_SSH_KEY" $VPS_USER@$VPS_HOST "
+    - ssh -i ~/.ssh/deploy_key $VPS_USER@$VPS_HOST "
         set -e
         echo '=== [1/4] Pull latest code ==='
         cd $DEPLOY_PATH
