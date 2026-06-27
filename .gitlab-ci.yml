@@ -21,7 +21,7 @@ test:
   only:
     - develop
 
-# Docker image Debian para compatibilidad con llave RSA PEM
+# Deploy via SSH con RSA PEM key y Debian estable
 deploy:
   stage: deploy
   image: debian:stable-slim
