@@ -46,8 +46,10 @@ deploy:
         set +a
 
         echo '=== [3/4] Build and restart ==='
+        export COMPOSE_PROJECT_NAME=patipets
+        docker compose -f /home/user11/app/docker-compose.yml down 2>/dev/null || true
         docker compose build $APP
-        docker compose up -d $APP
+        docker compose up -d --remove-orphans $APP
 
         echo '=== [4/4] Cleanup ==='
         docker image prune -f
