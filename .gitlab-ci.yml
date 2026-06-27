@@ -21,7 +21,7 @@ test:
   only:
     - develop
 
-# Deploy via SSH con RSA PEM key y Debian estable
+# Deploy via SSH con RSA PEM key y Ubuntu 20.04
 deploy:
   stage: deploy
   image: ubuntu:20.04
