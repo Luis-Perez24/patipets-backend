@@ -21,6 +21,7 @@ test:
   only:
     - develop
 
+# Usa RSA key para compatibilidad con Alpine libcrypto
 deploy:
   stage: deploy
   image: alpine:latest
