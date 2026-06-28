@@ -75,8 +75,8 @@ verify:
         && echo 'Health check passed' \
         || (echo 'Health check failed' && exit 1)
     - |
-      curl -sf http://200.13.4.215:8080/api/v1/animales \
-        && echo 'API responding' \
-        || (echo 'API not responding' && exit 1)
+      curl -sf http://200.13.4.215/ \
+        && echo 'Frontend reachable' \
+        || (echo 'Frontend not reachable' && exit 1)
   only:
     - develop
