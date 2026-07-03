@@ -77,8 +77,11 @@ public class AdopcionController {
     @PutMapping("/solicitudes/{id}/aprobar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('REFUGIO')")
     public ResponseEntity<ApiResponseDTO<SolicitudAdopcionResponseDTO>> aprobarSolicitud(
+            Authentication authentication,
             @PathVariable Long id) {
         try {
+            SolicitudAdopcion existente = gestionAnimalUseCase.obtenerSolicitudPorId(id);
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), existente.getRefugioId());
             SolicitudAdopcion solicitud = gestionAnimalUseCase.aprobarSolicitud(id);
             return ResponseEntity.ok(ApiResponseDTO.ok("Solicitud aprobada",
                     SolicitudAdopcionResponseDTO.fromDomain(solicitud)));
@@ -91,8 +94,11 @@ public class AdopcionController {
     @PutMapping("/solicitudes/{id}/rechazar")
     @PreAuthorize("hasRole('ADMIN') or hasRole('REFUGIO')")
     public ResponseEntity<ApiResponseDTO<SolicitudAdopcionResponseDTO>> rechazarSolicitud(
+            Authentication authentication,
             @PathVariable Long id) {
         try {
+            SolicitudAdopcion existente = gestionAnimalUseCase.obtenerSolicitudPorId(id);
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), existente.getRefugioId());
             SolicitudAdopcion solicitud = gestionAnimalUseCase.rechazarSolicitud(id);
             return ResponseEntity.ok(ApiResponseDTO.ok("Solicitud rechazada",
                     SolicitudAdopcionResponseDTO.fromDomain(solicitud)));

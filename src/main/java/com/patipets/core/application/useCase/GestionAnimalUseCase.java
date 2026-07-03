@@ -23,6 +23,7 @@ public interface GestionAnimalUseCase {
     List<SolicitudAdopcion> listarSolicitudesPorAdoptante(Long adoptanteId);
     List<SolicitudAdopcion> listarSolicitudesPorRefugio(Long refugioId);
     List<SolicitudAdopcion> listarSolicitudesPendientes(int page, int size);
+    SolicitudAdopcion obtenerSolicitudPorId(Long solicitudId);
     SolicitudAdopcion aprobarSolicitud(Long solicitudId);
     SolicitudAdopcion rechazarSolicitud(Long solicitudId);
 }
