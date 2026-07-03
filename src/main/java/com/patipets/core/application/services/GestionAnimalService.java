@@ -181,6 +181,12 @@ public class GestionAnimalService implements GestionAnimalUseCase {
     }
 
     @Override
+    public SolicitudAdopcion obtenerSolicitudPorId(Long solicitudId) {
+        return solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitud no encontrada: " + solicitudId));
+    }
+
+    @Override
     public SolicitudAdopcion aprobarSolicitud(Long solicitudId) {
         SolicitudAdopcion solicitud = solicitudRepository.findById(solicitudId)
                 .orElseThrow(() -> new IllegalArgumentException("Solicitud no encontrada: " + solicitudId));
