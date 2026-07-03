@@ -34,7 +34,7 @@ public class EstadisticaRepositoryAdapter implements EstadisticaRepositoryPort {
         long disponibles = animalJpaRepository.countByEstadoAdopcion(
                 com.patipets.core.domain.enums.EstadoAnimal.DISPONIBLE);
         long refugios = refugioJpaRepository.countByEstado(EstadoRefugio.APROBADO);
-        long adopciones = solicitudJpaRepository.countByEstado("APROBADA");
+        long adopciones = solicitudJpaRepository.countByEstado("COMPLETADA");
         long voluntarios = usuarioJpaRepository.countByRol(
                 com.patipets.core.domain.enums.Rol.VOLUNTARIO);
         return new EstadisticaDashboard(disponibles, adopciones, voluntarios, refugios);
@@ -48,7 +48,8 @@ public class EstadisticaRepositoryAdapter implements EstadisticaRepositoryPort {
         long refugiosAprobados = refugioJpaRepository.countByEstado(EstadoRefugio.APROBADO);
         long refugiosRechazados = refugioJpaRepository.countByEstado(EstadoRefugio.RECHAZADO);
         long solicitudesPendientes = solicitudJpaRepository.countByEstado("PENDIENTE");
-        long solicitudesAprobadas = solicitudJpaRepository.countByEstado("APROBADA");
+        long solicitudesAprobadas = solicitudJpaRepository.countByEstado("APROBADA")
+                + solicitudJpaRepository.countByEstado("COMPLETADA");
         long usuariosTotales = usuarioJpaRepository.count();
         return new AdminDashboardStats(disponibles, refugiosPendientes, refugiosAprobados,
                 refugiosRechazados, solicitudesPendientes, solicitudesAprobadas, usuariosTotales);

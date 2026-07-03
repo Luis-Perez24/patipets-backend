@@ -84,8 +84,28 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
     public void procesarCambioEstadoSolicitud(Long solicitudId, Long adoptanteId, Long animalId, String nuevoEstado) {
         Animal animal = animalRepository.findById(animalId).orElse(null);
         String nombreAnimal = animal != null ? animal.getNombre() : "el animal";
-        String titulo = "Actualización de tu solicitud de adopción";
-        String mensaje = String.format("Tu solicitud de adopción para %s cambió a estado: %s", nombreAnimal, nuevoEstado);
+        String titulo;
+        String mensaje;
+        switch (nuevoEstado) {
+            case "APROBADA" -> {
+                titulo = "Tu solicitud de adopción fue aprobada";
+                mensaje = String.format(
+                        "Tu solicitud para adoptar a %s fue aprobada. El refugio está coordinando la entrega.",
+                        nombreAnimal);
+            }
+            case "RECHAZADA" -> {
+                titulo = "Tu solicitud de adopción fue rechazada";
+                mensaje = String.format("Tu solicitud para adoptar a %s fue rechazada.", nombreAnimal);
+            }
+            case "COMPLETADA" -> {
+                titulo = "¡Adopción confirmada!";
+                mensaje = String.format("La adopción de %s fue confirmada. ¡Felicidades!", nombreAnimal);
+            }
+            default -> {
+                titulo = "Actualización de tu solicitud de adopción";
+                mensaje = String.format("Tu solicitud de adopción para %s cambió a estado: %s", nombreAnimal, nuevoEstado);
+            }
+        }
         notificar(adoptanteId, TipoNotificacion.CAMBIO_ESTADO_SOLICITUD, titulo, mensaje, solicitudId);
     }
 

@@ -213,7 +213,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
         animalRepository.save(new Animal(
                 animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
                 animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
-                animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.ADOPTADO,
+                animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.EN_PROCESO,
                 animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
         ));
 
@@ -221,7 +221,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 solicitud.getAnimalId(), EstadoPostulacion.PENDIENTE.name());
         for (SolicitudAdopcion otra : otrasPendientes) {
             if (!otra.getId().equals(solicitudId)) {
-                solicitudRepository.save(new SolicitudAdopcion(
+                SolicitudAdopcion otraRechazada = solicitudRepository.save(new SolicitudAdopcion(
                         otra.getId(), otra.getAnimalId(), otra.getAdoptanteId(),
                         otra.getRefugioId(), EstadoPostulacion.RECHAZADA,
                         otra.getFechaCreacion(), LocalDateTime.now(),
@@ -231,10 +231,45 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                         otra.getTipoVivienda(), otra.getDescripcionEspacio(),
                         otra.getTieneNinos(), otra.getTieneOtrasMascotas()
                 ));
+                eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
+                        otraRechazada.getId(), otraRechazada.getAdoptanteId(), otraRechazada.getAnimalId(),
+                        otraRechazada.getEstado().name()));
             }
         }
 
         SolicitudAdopcion guardada = solicitudRepository.save(actualizada);
+        eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
+                guardada.getId(), guardada.getAdoptanteId(), guardada.getAnimalId(),
+                guardada.getEstado().name()));
+        return guardada;
+    }
+
+    @Override
+    public SolicitudAdopcion confirmarAdopcion(Long solicitudId) {
+        SolicitudAdopcion solicitud = solicitudRepository.findById(solicitudId)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitud no encontrada: " + solicitudId));
+        if (solicitud.getEstado() != EstadoPostulacion.APROBADA) {
+            throw new IllegalStateException("La solicitud no está en estado APROBADA");
+        }
+        Animal animal = animalRepository.findById(solicitud.getAnimalId())
+                .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado"));
+        animalRepository.save(new Animal(
+                animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
+                animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
+                animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.ADOPTADO,
+                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
+        ));
+        SolicitudAdopcion completada = new SolicitudAdopcion(
+                solicitudId, solicitud.getAnimalId(), solicitud.getAdoptanteId(),
+                solicitud.getRefugioId(), EstadoPostulacion.COMPLETADA,
+                solicitud.getFechaCreacion(), LocalDateTime.now(),
+                solicitud.getNombreCompleto(), solicitud.getNumeroContacto(),
+                solicitud.getDireccion(), solicitud.getNivelActividad(),
+                solicitud.getHorasSolo(), solicitud.getCuidadoVacaciones(),
+                solicitud.getTipoVivienda(), solicitud.getDescripcionEspacio(),
+                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas()
+        );
+        SolicitudAdopcion guardada = solicitudRepository.save(completada);
         eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
                 guardada.getId(), guardada.getAdoptanteId(), guardada.getAnimalId(),
                 guardada.getEstado().name()));
