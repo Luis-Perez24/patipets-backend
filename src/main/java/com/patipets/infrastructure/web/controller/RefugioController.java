@@ -29,7 +29,7 @@ public class RefugioController {
     }
 
     @PostMapping(value = "/{refugioId}/animales", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO', 'CIUDADANO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> crearAnimal(
             @PathVariable Long refugioId,
             @Valid @RequestPart("datos") AnimalRequestDTO request,
@@ -51,7 +51,7 @@ public class RefugioController {
     }
 
     @PutMapping(value = "/{refugioId}/animales/{animalId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO', 'CIUDADANO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> actualizarAnimal(
             @PathVariable Long refugioId,
             @PathVariable Long animalId,
@@ -74,6 +74,7 @@ public class RefugioController {
     }
 
     @DeleteMapping("/{refugioId}/animales/{animalId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<Void>> eliminarAnimal(
             @PathVariable Long refugioId,
             @PathVariable Long animalId) {
