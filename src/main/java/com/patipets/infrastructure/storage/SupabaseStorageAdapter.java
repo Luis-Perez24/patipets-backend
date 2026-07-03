@@ -4,7 +4,9 @@ import com.patipets.core.application.ports.output.ImageStoragePort;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,7 +29,10 @@ public class SupabaseStorageAdapter implements ImageStoragePort {
     private final RestTemplate restTemplate;
 
     public SupabaseStorageAdapter() {
-        this.restTemplate = new RestTemplate();
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(15000);
+        this.restTemplate = new RestTemplate(factory);
     }
 
     @Override
@@ -54,5 +59,26 @@ public class SupabaseStorageAdapter implements ImageStoragePort {
             return supabaseUrl + "/storage/v1/object/public/" + supabaseBucket + "/" + nombre;
         }
         throw new RuntimeException("Error al subir imagen a Supabase: " + response.getStatusCode());
+    }
+
+    @Override
+    public void delete(String url) {
+        String marker = "/object/public/" + supabaseBucket + "/";
+        int idx = url.indexOf(marker);
+        if (idx == -1) {
+            return;
+        }
+        String objectPath = url.substring(idx + marker.length());
+        String deleteUrl = supabaseUrl + "/storage/v1/object/" + supabaseBucket + "/" + objectPath;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + supabaseKey);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.exchange(deleteUrl, HttpMethod.DELETE, entity, String.class);
+        } catch (RestClientException e) {
+            // Best-effort: es compensación de una operación ya resuelta, no debe propagar el fallo
+        }
     }
 }

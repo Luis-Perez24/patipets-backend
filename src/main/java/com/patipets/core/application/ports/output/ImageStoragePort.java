@@ -5,4 +5,5 @@ import java.io.IOException;
 
 public interface ImageStoragePort {
     String upload(MultipartFile file) throws IOException;
+    void delete(String url);
 }
