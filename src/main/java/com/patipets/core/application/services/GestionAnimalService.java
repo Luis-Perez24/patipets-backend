@@ -67,11 +67,12 @@ public class GestionAnimalService implements GestionAnimalUseCase {
     }
 
     @Override
-    public Animal actualizarAnimal(Long id, String nombre, String especie, String raza,
+    public Animal actualizarAnimal(Long id, Long refugioId, String nombre, String especie, String raza,
                                     Integer edad, String tamano, String personalidad,
                                     String estadoSalud, String historia, String estadoAdopcion,
                                     List<String> fotosAMantener, List<MultipartFile> archivosNuevos) throws IOException {
         Animal existente = animalRepository.findById(id)
+                .filter(a -> a.getRefugioId().equals(refugioId))
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
         EstadoAnimal nuevoEstado = estadoAdopcion != null
                 ? EstadoAnimal.valueOf(estadoAdopcion.toUpperCase())
@@ -109,8 +110,9 @@ public class GestionAnimalService implements GestionAnimalUseCase {
     }
 
     @Override
-    public void eliminarAnimal(Long id) {
+    public void eliminarAnimal(Long id, Long refugioId) {
         Animal existente = animalRepository.findById(id)
+                .filter(a -> a.getRefugioId().equals(refugioId))
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
         animalRepository.deleteById(id);
         eliminarFotos(existente.getFotos());

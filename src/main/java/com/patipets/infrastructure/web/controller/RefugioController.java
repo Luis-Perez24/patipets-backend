@@ -2,6 +2,8 @@ package com.patipets.infrastructure.web.controller;
 
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
 import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.Usuario;
+import com.patipets.infrastructure.security.RefugioAccessGuard;
 import com.patipets.infrastructure.web.dto.AnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalRequestDTO;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -23,18 +26,22 @@ import java.util.stream.Collectors;
 public class RefugioController {
 
     private final GestionAnimalUseCase gestionAnimalUseCase;
+    private final RefugioAccessGuard refugioAccessGuard;
 
-    public RefugioController(GestionAnimalUseCase gestionAnimalUseCase) {
+    public RefugioController(GestionAnimalUseCase gestionAnimalUseCase, RefugioAccessGuard refugioAccessGuard) {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
+        this.refugioAccessGuard = refugioAccessGuard;
     }
 
     @PostMapping(value = "/{refugioId}/animales", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> crearAnimal(
+            Authentication authentication,
             @PathVariable Long refugioId,
             @Valid @RequestPart("datos") AnimalRequestDTO request,
             @RequestPart(value = "archivos", required = false) List<MultipartFile> archivos) {
         try {
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
             Animal animal = gestionAnimalUseCase.crearAnimal(
                     request.getNombre(), request.getEspecie(), request.getRaza(),
                     request.getEdad(), request.getTamano(), request.getPersonalidad(),
@@ -53,13 +60,15 @@ public class RefugioController {
     @PutMapping(value = "/{refugioId}/animales/{animalId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> actualizarAnimal(
+            Authentication authentication,
             @PathVariable Long refugioId,
             @PathVariable Long animalId,
             @Valid @RequestPart("datos") AnimalUpdateRequestDTO request,
             @RequestPart(value = "archivos", required = false) List<MultipartFile> archivos) {
         try {
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
             Animal animal = gestionAnimalUseCase.actualizarAnimal(
-                    animalId, request.getNombre(), request.getEspecie(), request.getRaza(),
+                    animalId, refugioId, request.getNombre(), request.getEspecie(), request.getRaza(),
                     request.getEdad(), request.getTamano(), request.getPersonalidad(),
                     request.getEstadoSalud(), request.getHistoria(),
                     request.getEstadoAdopcion(), request.getFotosAMantener(), archivos);
@@ -76,10 +85,12 @@ public class RefugioController {
     @DeleteMapping("/{refugioId}/animales/{animalId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<Void>> eliminarAnimal(
+            Authentication authentication,
             @PathVariable Long refugioId,
             @PathVariable Long animalId) {
         try {
-            gestionAnimalUseCase.eliminarAnimal(animalId);
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
+            gestionAnimalUseCase.eliminarAnimal(animalId, refugioId);
             return ResponseEntity.ok(ApiResponseDTO.ok("Animal eliminado", null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
