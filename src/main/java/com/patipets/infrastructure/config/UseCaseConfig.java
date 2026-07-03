@@ -31,6 +31,7 @@ import com.patipets.infrastructure.persistence.repository.AnimalJpaRepository;
 import com.patipets.infrastructure.persistence.repository.RefugioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.SolicitudAdopcionJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioJpaRepository;
+import com.patipets.infrastructure.persistence.repository.UsuarioRefugioJpaRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -42,17 +43,20 @@ public class UseCaseConfig {
     private final UsuarioJpaRepository usuarioJpaRepository;
     private final SolicitudAdopcionJpaRepository solicitudJpaRepository;
     private final AlertaJpaRepository alertaJpaRepository;
+    private final UsuarioRefugioJpaRepository usuarioRefugioJpaRepository;
 
     public UseCaseConfig(AnimalJpaRepository animalJpaRepository,
                           RefugioJpaRepository refugioJpaRepository,
                           UsuarioJpaRepository usuarioJpaRepository,
                           SolicitudAdopcionJpaRepository solicitudJpaRepository,
-                          AlertaJpaRepository alertaJpaRepository) {
+                          AlertaJpaRepository alertaJpaRepository,
+                          UsuarioRefugioJpaRepository usuarioRefugioJpaRepository) {
         this.animalJpaRepository = animalJpaRepository;
         this.refugioJpaRepository = refugioJpaRepository;
         this.usuarioJpaRepository = usuarioJpaRepository;
         this.solicitudJpaRepository = solicitudJpaRepository;
         this.alertaJpaRepository = alertaJpaRepository;
+        this.usuarioRefugioJpaRepository = usuarioRefugioJpaRepository;
     }
 
     @Bean
@@ -62,7 +66,8 @@ public class UseCaseConfig {
 
     @Bean
     public ConsultarMapaRefugiosUseCase consultarMapaRefugiosUseCase() {
-        return new ConsultarMapaRefugiosService(new RefugioRepositoryAdapter(refugioJpaRepository));
+        return new ConsultarMapaRefugiosService(
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository));
     }
 
     @Bean
@@ -87,7 +92,8 @@ public class UseCaseConfig {
 
     @Bean
     public GestionRefugioUseCase gestionRefugioUseCase() {
-        return new GestionRefugioService(new RefugioRepositoryAdapter(refugioJpaRepository));
+        return new GestionRefugioService(
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository));
     }
 
     @Bean
@@ -95,7 +101,7 @@ public class UseCaseConfig {
         return new GestionAnimalService(
                 new AnimalRepositoryAdapter(animalJpaRepository),
                 new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
-                new RefugioRepositoryAdapter(refugioJpaRepository),
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
                 imageStoragePort);
     }
 

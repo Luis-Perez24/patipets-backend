@@ -3,6 +3,7 @@ package com.patipets.infrastructure.web.controller;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import com.patipets.core.domain.models.Usuario;
+import com.patipets.infrastructure.security.RefugioAccessGuard;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.SolicitudAdopcionResponseDTO;
 import com.patipets.infrastructure.web.dto.request.SolicitudAdopcionRequestDTO;
@@ -20,9 +21,11 @@ import java.util.stream.Collectors;
 public class AdopcionController {
 
     private final GestionAnimalUseCase gestionAnimalUseCase;
+    private final RefugioAccessGuard refugioAccessGuard;
 
-    public AdopcionController(GestionAnimalUseCase gestionAnimalUseCase) {
+    public AdopcionController(GestionAnimalUseCase gestionAnimalUseCase, RefugioAccessGuard refugioAccessGuard) {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
+        this.refugioAccessGuard = refugioAccessGuard;
     }
 
     @PostMapping("/solicitar")
@@ -61,7 +64,9 @@ public class AdopcionController {
     @GetMapping("/refugio/{refugioId}/solicitudes")
     @PreAuthorize("hasRole('ADMIN') or hasRole('REFUGIO')")
     public ResponseEntity<ApiResponseDTO<List<SolicitudAdopcionResponseDTO>>> solicitudesPorRefugio(
+            Authentication authentication,
             @PathVariable Long refugioId) {
+        refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
         List<SolicitudAdopcion> solicitudes = gestionAnimalUseCase.listarSolicitudesPorRefugio(refugioId);
         var dto = solicitudes.stream()
                 .map(SolicitudAdopcionResponseDTO::fromDomain)

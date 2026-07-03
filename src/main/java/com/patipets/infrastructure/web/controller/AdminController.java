@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,12 +44,15 @@ public class AdminController {
 
     @PostMapping("/refugios")
     public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> solicitarRefugio(
+            Authentication authentication,
             @Valid @RequestBody RefugioSolicitudRequestDTO request) {
         try {
+            Usuario usuarioActual = (Usuario) authentication.getPrincipal();
             Refugio refugio = gestionRefugioUseCase.solicitar(
                     request.getNombre(), request.getDireccion(), request.getRegion(),
                     request.getComuna(), request.getLatitud(), request.getLongitud(),
-                    request.getCapacidad(), request.getEmail(), request.getNumeroContacto());
+                    request.getCapacidad(), request.getEmail(), request.getNumeroContacto(),
+                    usuarioActual.getId());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Solicitud de refugio creada", RefugioResponseDTO.fromDomain(refugio)));
         } catch (IllegalArgumentException e) {

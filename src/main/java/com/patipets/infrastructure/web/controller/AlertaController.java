@@ -2,6 +2,8 @@ package com.patipets.infrastructure.web.controller;
 
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.domain.models.Alerta;
+import com.patipets.core.domain.models.Usuario;
+import com.patipets.infrastructure.security.RefugioAccessGuard;
 import com.patipets.infrastructure.web.dto.AlertaResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.request.AlertaRequestDTO;
@@ -9,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,17 +21,21 @@ import java.util.stream.Collectors;
 public class AlertaController {
 
     private final GestionAlertaUseCase gestionAlertaUseCase;
+    private final RefugioAccessGuard refugioAccessGuard;
 
-    public AlertaController(GestionAlertaUseCase gestionAlertaUseCase) {
+    public AlertaController(GestionAlertaUseCase gestionAlertaUseCase, RefugioAccessGuard refugioAccessGuard) {
         this.gestionAlertaUseCase = gestionAlertaUseCase;
+        this.refugioAccessGuard = refugioAccessGuard;
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AlertaResponseDTO>> crearAlerta(
+            Authentication authentication,
             @Valid @RequestBody AlertaRequestDTO request,
             @RequestAttribute("usuarioId") Long usuarioId) {
         try {
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), request.getRefugioId());
             Alerta alerta = gestionAlertaUseCase.crear(
                     request.getTitulo(), request.getDescripcion(),
                     request.getNivelUrgencia(), request.getRefugioId(), usuarioId);

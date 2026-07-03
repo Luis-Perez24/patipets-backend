@@ -6,8 +6,9 @@ import java.util.List;
 public interface GestionRefugioUseCase {
     Refugio solicitar(String nombre, String direccion, String region, String comuna,
                       Double latitud, Double longitud, Integer capacidad,
-                      String email, String numeroContacto);
+                      String email, String numeroContacto, Long usuarioId);
     Refugio aprobar(Long id);
     Refugio rechazar(Long id);
     List<Refugio> listarPendientes();
+    boolean perteneceAUsuario(Long refugioId, Long usuarioId);
 }

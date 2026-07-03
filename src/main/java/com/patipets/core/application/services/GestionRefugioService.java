@@ -17,12 +17,14 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     @Override
     public Refugio solicitar(String nombre, String direccion, String region, String comuna,
                               Double latitud, Double longitud, Integer capacidad,
-                              String email, String numeroContacto) {
+                              String email, String numeroContacto, Long usuarioId) {
         Refugio nuevo = new Refugio(
                 null, nombre, direccion, region, comuna,
                 latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE
         );
-        return refugioRepository.save(nuevo);
+        Refugio guardado = refugioRepository.save(nuevo);
+        refugioRepository.vincularUsuario(usuarioId, guardado.getId());
+        return guardado;
     }
 
     @Override
@@ -60,5 +62,10 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     @Override
     public List<Refugio> listarPendientes() {
         return refugioRepository.findByEstado(EstadoRefugio.PENDIENTE);
+    }
+
+    @Override
+    public boolean perteneceAUsuario(Long refugioId, Long usuarioId) {
+        return refugioRepository.perteneceAUsuario(refugioId, usuarioId);
     }
 }
