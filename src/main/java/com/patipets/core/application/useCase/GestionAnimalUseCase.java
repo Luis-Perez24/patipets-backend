@@ -26,4 +26,5 @@ public interface GestionAnimalUseCase {
     SolicitudAdopcion obtenerSolicitudPorId(Long solicitudId);
     SolicitudAdopcion aprobarSolicitud(Long solicitudId);
     SolicitudAdopcion rechazarSolicitud(Long solicitudId);
+    SolicitudAdopcion confirmarAdopcion(Long solicitudId);
 }

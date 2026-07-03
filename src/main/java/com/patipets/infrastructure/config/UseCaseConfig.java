@@ -1,5 +1,7 @@
 package com.patipets.infrastructure.config;
 
+import com.patipets.core.application.ports.output.EmailSenderPort;
+import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.PasswordEncoderPort;
 import com.patipets.core.application.services.AuthService;
@@ -9,6 +11,7 @@ import com.patipets.core.application.services.ConsultarEstadisticasDashboardServ
 import com.patipets.core.application.services.ConsultarMapaRefugiosService;
 import com.patipets.core.application.services.GestionAlertaService;
 import com.patipets.core.application.services.GestionAnimalService;
+import com.patipets.core.application.services.GestionNotificacionService;
 import com.patipets.core.application.services.GestionRefugioService;
 import com.patipets.core.application.services.GestionUsuarioService;
 import com.patipets.core.application.useCase.AuthUseCase;
@@ -18,16 +21,19 @@ import com.patipets.core.application.useCase.ConsultarEstadisticasDashboardUseCa
 import com.patipets.core.application.useCase.ConsultarMapaRefugiosUseCase;
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
+import com.patipets.core.application.useCase.GestionNotificacionUseCase;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.application.useCase.GestionUsuarioUseCase;
 import com.patipets.infrastructure.persistence.adapter.AlertaRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.AnimalRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.EstadisticaRepositoryAdapter;
+import com.patipets.infrastructure.persistence.adapter.NotificacionRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.RefugioRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.SolicitudAdopcionRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.UsuarioRepositoryAdapter;
 import com.patipets.infrastructure.persistence.repository.AlertaJpaRepository;
 import com.patipets.infrastructure.persistence.repository.AnimalJpaRepository;
+import com.patipets.infrastructure.persistence.repository.NotificacionJpaRepository;
 import com.patipets.infrastructure.persistence.repository.RefugioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.SolicitudAdopcionJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioJpaRepository;
@@ -44,19 +50,22 @@ public class UseCaseConfig {
     private final SolicitudAdopcionJpaRepository solicitudJpaRepository;
     private final AlertaJpaRepository alertaJpaRepository;
     private final UsuarioRefugioJpaRepository usuarioRefugioJpaRepository;
+    private final NotificacionJpaRepository notificacionJpaRepository;
 
     public UseCaseConfig(AnimalJpaRepository animalJpaRepository,
                           RefugioJpaRepository refugioJpaRepository,
                           UsuarioJpaRepository usuarioJpaRepository,
                           SolicitudAdopcionJpaRepository solicitudJpaRepository,
                           AlertaJpaRepository alertaJpaRepository,
-                          UsuarioRefugioJpaRepository usuarioRefugioJpaRepository) {
+                          UsuarioRefugioJpaRepository usuarioRefugioJpaRepository,
+                          NotificacionJpaRepository notificacionJpaRepository) {
         this.animalJpaRepository = animalJpaRepository;
         this.refugioJpaRepository = refugioJpaRepository;
         this.usuarioJpaRepository = usuarioJpaRepository;
         this.solicitudJpaRepository = solicitudJpaRepository;
         this.alertaJpaRepository = alertaJpaRepository;
         this.usuarioRefugioJpaRepository = usuarioRefugioJpaRepository;
+        this.notificacionJpaRepository = notificacionJpaRepository;
     }
 
     @Bean
@@ -97,12 +106,14 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionAnimalUseCase gestionAnimalUseCase(ImageStoragePort imageStoragePort) {
+    public GestionAnimalUseCase gestionAnimalUseCase(ImageStoragePort imageStoragePort,
+                                                       EventPublisherPort eventPublisher) {
         return new GestionAnimalService(
                 new AnimalRepositoryAdapter(animalJpaRepository),
                 new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
                 new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
-                imageStoragePort);
+                imageStoragePort,
+                eventPublisher);
     }
 
     @Bean
@@ -111,7 +122,18 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionAlertaUseCase gestionAlertaUseCase() {
-        return new GestionAlertaService(new AlertaRepositoryAdapter(alertaJpaRepository));
+    public GestionAlertaUseCase gestionAlertaUseCase(EventPublisherPort eventPublisher) {
+        return new GestionAlertaService(new AlertaRepositoryAdapter(alertaJpaRepository), eventPublisher);
+    }
+
+    @Bean
+    public GestionNotificacionUseCase gestionNotificacionUseCase(EmailSenderPort emailSender) {
+        return new GestionNotificacionService(
+                new NotificacionRepositoryAdapter(notificacionJpaRepository),
+                new UsuarioRepositoryAdapter(usuarioJpaRepository),
+                new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
+                new AnimalRepositoryAdapter(animalJpaRepository),
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
+                emailSender);
     }
 }

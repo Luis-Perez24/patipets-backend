@@ -1,6 +1,8 @@
 package com.patipets.core.application.services;
 
+import com.patipets.core.application.events.AlertaUrgentePublicadaEvent;
 import com.patipets.core.application.ports.output.AlertaRepositoryPort;
+import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.domain.enums.NivelUrgencia;
 import com.patipets.core.domain.models.Alerta;
@@ -10,9 +12,11 @@ import java.util.List;
 public class GestionAlertaService implements GestionAlertaUseCase {
 
     private final AlertaRepositoryPort alertaRepository;
+    private final EventPublisherPort eventPublisher;
 
-    public GestionAlertaService(AlertaRepositoryPort alertaRepository) {
+    public GestionAlertaService(AlertaRepositoryPort alertaRepository, EventPublisherPort eventPublisher) {
         this.alertaRepository = alertaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -30,7 +34,11 @@ public class GestionAlertaService implements GestionAlertaUseCase {
         Alerta alerta = new Alerta(
                 null, titulo, descripcion, nivel, refugioId, creadoPor, true, LocalDateTime.now()
         );
-        return alertaRepository.save(alerta);
+        Alerta creada = alertaRepository.save(alerta);
+        eventPublisher.publicar(new AlertaUrgentePublicadaEvent(
+                creada.getId(), creada.getRefugioId(), creada.getTitulo(),
+                creada.getDescripcion(), creada.getNivelUrgencia().name()));
+        return creada;
     }
 
     @Override

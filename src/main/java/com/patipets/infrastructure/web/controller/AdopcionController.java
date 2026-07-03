@@ -107,4 +107,21 @@ public class AdopcionController {
                     .body(ApiResponseDTO.error(e.getMessage()));
         }
     }
+
+    @PutMapping("/solicitudes/{id}/confirmar")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<SolicitudAdopcionResponseDTO>> confirmarAdopcion(
+            Authentication authentication,
+            @PathVariable Long id) {
+        try {
+            SolicitudAdopcion existente = gestionAnimalUseCase.obtenerSolicitudPorId(id);
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), existente.getRefugioId());
+            SolicitudAdopcion solicitud = gestionAnimalUseCase.confirmarAdopcion(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Adopción confirmada",
+                    SolicitudAdopcionResponseDTO.fromDomain(solicitud)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
 }
