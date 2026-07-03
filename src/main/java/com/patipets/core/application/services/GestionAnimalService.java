@@ -1,6 +1,8 @@
 package com.patipets.core.application.services;
 
+import com.patipets.core.application.events.EstadoSolicitudCambiadoEvent;
 import com.patipets.core.application.ports.output.AnimalRepositoryPort;
+import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.application.ports.output.SolicitudAdopcionRepositoryPort;
@@ -29,15 +31,18 @@ public class GestionAnimalService implements GestionAnimalUseCase {
     private final SolicitudAdopcionRepositoryPort solicitudRepository;
     private final RefugioRepositoryPort refugioRepository;
     private final ImageStoragePort imageStoragePort;
+    private final EventPublisherPort eventPublisher;
 
     public GestionAnimalService(AnimalRepositoryPort animalRepository,
                                  SolicitudAdopcionRepositoryPort solicitudRepository,
                                  RefugioRepositoryPort refugioRepository,
-                                 ImageStoragePort imageStoragePort) {
+                                 ImageStoragePort imageStoragePort,
+                                 EventPublisherPort eventPublisher) {
         this.animalRepository = animalRepository;
         this.solicitudRepository = solicitudRepository;
         this.refugioRepository = refugioRepository;
         this.imageStoragePort = imageStoragePort;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -229,7 +234,11 @@ public class GestionAnimalService implements GestionAnimalUseCase {
             }
         }
 
-        return solicitudRepository.save(actualizada);
+        SolicitudAdopcion guardada = solicitudRepository.save(actualizada);
+        eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
+                guardada.getId(), guardada.getAdoptanteId(), guardada.getAnimalId(),
+                guardada.getEstado().name()));
+        return guardada;
     }
 
     @Override
@@ -257,6 +266,10 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.DISPONIBLE,
                 animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
         ));
-        return solicitudRepository.save(actualizada);
+        SolicitudAdopcion guardada = solicitudRepository.save(actualizada);
+        eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
+                guardada.getId(), guardada.getAdoptanteId(), guardada.getAnimalId(),
+                guardada.getEstado().name()));
+        return guardada;
     }
 }
