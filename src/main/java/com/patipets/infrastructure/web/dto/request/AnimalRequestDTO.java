@@ -3,7 +3,6 @@ package com.patipets.infrastructure.web.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.util.List;
 
 public class AnimalRequestDTO {
 
@@ -34,8 +33,6 @@ public class AnimalRequestDTO {
     @Positive(message = "debe ser un número positivo")
     private Long refugioId;
 
-    private List<String> fotos;
-
     public AnimalRequestDTO() {}
 
     public String getNombre() { return nombre; }
@@ -56,6 +53,4 @@ public class AnimalRequestDTO {
     public void setHistoria(String historia) { this.historia = historia; }
     public Long getRefugioId() { return refugioId; }
     public void setRefugioId(Long refugioId) { this.refugioId = refugioId; }
-    public List<String> getFotos() { return fotos; }
-    public void setFotos(List<String> fotos) { this.fotos = fotos; }
 }

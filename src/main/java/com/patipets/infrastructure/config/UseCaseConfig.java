@@ -1,5 +1,6 @@
 package com.patipets.infrastructure.config;
 
+import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.PasswordEncoderPort;
 import com.patipets.core.application.services.AuthService;
 import com.patipets.core.application.services.ConsultarAdminDashboardService;
@@ -90,11 +91,12 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionAnimalUseCase gestionAnimalUseCase() {
+    public GestionAnimalUseCase gestionAnimalUseCase(ImageStoragePort imageStoragePort) {
         return new GestionAnimalService(
                 new AnimalRepositoryAdapter(animalJpaRepository),
                 new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
-                new RefugioRepositoryAdapter(refugioJpaRepository));
+                new RefugioRepositoryAdapter(refugioJpaRepository),
+                imageStoragePort);
     }
 
     @Bean

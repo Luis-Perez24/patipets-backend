@@ -33,7 +33,7 @@ public class AnimalUpdateRequestDTO {
     @NotBlank(message = "es obligatorio")
     private String estadoAdopcion;
 
-    private List<String> fotos;
+    private List<String> fotosAMantener;
 
     public AnimalUpdateRequestDTO() {}
 
@@ -55,6 +55,6 @@ public class AnimalUpdateRequestDTO {
     public void setHistoria(String historia) { this.historia = historia; }
     public String getEstadoAdopcion() { return estadoAdopcion; }
     public void setEstadoAdopcion(String estadoAdopcion) { this.estadoAdopcion = estadoAdopcion; }
-    public List<String> getFotos() { return fotos; }
-    public void setFotos(List<String> fotos) { this.fotos = fotos; }
+    public List<String> getFotosAMantener() { return fotosAMantener; }
+    public void setFotosAMantener(List<String> fotosAMantener) { this.fotosAMantener = fotosAMantener; }
 }

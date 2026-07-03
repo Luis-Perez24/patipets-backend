@@ -9,9 +9,12 @@ import com.patipets.infrastructure.web.dto.request.AnimalUpdateRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,40 +28,48 @@ public class RefugioController {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
     }
 
-    @PostMapping("/{refugioId}/animales")
+    @PostMapping(value = "/{refugioId}/animales", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO', 'CIUDADANO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> crearAnimal(
             @PathVariable Long refugioId,
-            @Valid @RequestBody AnimalRequestDTO request) {
+            @Valid @RequestPart("datos") AnimalRequestDTO request,
+            @RequestPart(value = "archivos", required = false) List<MultipartFile> archivos) {
         try {
             Animal animal = gestionAnimalUseCase.crearAnimal(
                     request.getNombre(), request.getEspecie(), request.getRaza(),
                     request.getEdad(), request.getTamano(), request.getPersonalidad(),
-                    request.getEstadoSalud(), request.getHistoria(), refugioId, request.getFotos());
+                    request.getEstadoSalud(), request.getHistoria(), refugioId, archivos);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Animal creado", AnimalResponseDTO.fromDomain(animal)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponseDTO.error("Error al procesar las imágenes: " + e.getMessage()));
         }
     }
 
-    @PutMapping("/{refugioId}/animales/{animalId}")
+    @PutMapping(value = "/{refugioId}/animales/{animalId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO', 'CIUDADANO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> actualizarAnimal(
             @PathVariable Long refugioId,
             @PathVariable Long animalId,
-            @Valid @RequestBody AnimalUpdateRequestDTO request) {
+            @Valid @RequestPart("datos") AnimalUpdateRequestDTO request,
+            @RequestPart(value = "archivos", required = false) List<MultipartFile> archivos) {
         try {
             Animal animal = gestionAnimalUseCase.actualizarAnimal(
                     animalId, request.getNombre(), request.getEspecie(), request.getRaza(),
                     request.getEdad(), request.getTamano(), request.getPersonalidad(),
                     request.getEstadoSalud(), request.getHistoria(),
-                    request.getEstadoAdopcion(), request.getFotos());
+                    request.getEstadoAdopcion(), request.getFotosAMantener(), archivos);
             return ResponseEntity.ok(ApiResponseDTO.ok("Animal actualizado", AnimalResponseDTO.fromDomain(animal)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponseDTO.error("Error al procesar las imágenes: " + e.getMessage()));
         }
     }
 

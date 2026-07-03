@@ -1,6 +1,7 @@
 package com.patipets.core.application.services;
 
 import com.patipets.core.application.ports.output.AnimalRepositoryPort;
+import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.application.ports.output.SolicitudAdopcionRepositoryPort;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
@@ -13,62 +14,126 @@ import com.patipets.core.domain.enums.TipoVivienda;
 import com.patipets.core.domain.models.Animal;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.SolicitudAdopcion;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GestionAnimalService implements GestionAnimalUseCase {
+
+    private static final int MAX_FOTOS_POR_ANIMAL = 5;
 
     private final AnimalRepositoryPort animalRepository;
     private final SolicitudAdopcionRepositoryPort solicitudRepository;
     private final RefugioRepositoryPort refugioRepository;
+    private final ImageStoragePort imageStoragePort;
 
     public GestionAnimalService(AnimalRepositoryPort animalRepository,
                                  SolicitudAdopcionRepositoryPort solicitudRepository,
-                                 RefugioRepositoryPort refugioRepository) {
+                                 RefugioRepositoryPort refugioRepository,
+                                 ImageStoragePort imageStoragePort) {
         this.animalRepository = animalRepository;
         this.solicitudRepository = solicitudRepository;
         this.refugioRepository = refugioRepository;
+        this.imageStoragePort = imageStoragePort;
     }
 
     @Override
     public Animal crearAnimal(String nombre, String especie, String raza, Integer edad,
                                String tamano, String personalidad, String estadoSalud,
-                               String historia, Long refugioId, List<String> fotos) {
+                               String historia, Long refugioId, List<MultipartFile> archivos) throws IOException {
         Refugio refugio = refugioRepository.findById(refugioId)
                 .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + refugioId));
         if (refugio.getEstado() != EstadoRefugio.APROBADO) {
             throw new IllegalArgumentException("No se pueden agregar animales a un refugio que no está aprobado");
         }
-        Animal animal = new Animal(
-                null, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
-                EstadoAnimal.DISPONIBLE, refugioId, null, null, fotos, LocalDateTime.now()
-        );
-        return animalRepository.save(animal);
+        if (archivos != null && archivos.size() > MAX_FOTOS_POR_ANIMAL) {
+            throw new IllegalArgumentException("Máximo " + MAX_FOTOS_POR_ANIMAL + " fotos por animal");
+        }
+
+        List<String> fotos = subirFotos(archivos);
+        try {
+            Animal animal = new Animal(
+                    null, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
+                    EstadoAnimal.DISPONIBLE, refugioId, null, null, fotos, LocalDateTime.now()
+            );
+            return animalRepository.save(animal);
+        } catch (RuntimeException e) {
+            eliminarFotos(fotos);
+            throw e;
+        }
     }
 
     @Override
     public Animal actualizarAnimal(Long id, String nombre, String especie, String raza,
                                     Integer edad, String tamano, String personalidad,
-                                    String estadoSalud, String historia,
-                                    String estadoAdopcion, List<String> fotos) {
+                                    String estadoSalud, String historia, String estadoAdopcion,
+                                    List<String> fotosAMantener, List<MultipartFile> archivosNuevos) throws IOException {
         Animal existente = animalRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
         EstadoAnimal nuevoEstado = estadoAdopcion != null
                 ? EstadoAnimal.valueOf(estadoAdopcion.toUpperCase())
                 : existente.getEstadoAdopcion();
+
+        List<String> aMantener = fotosAMantener != null ? fotosAMantener : List.of();
+        int totalFotos = aMantener.size() + (archivosNuevos != null ? archivosNuevos.size() : 0);
+        if (totalFotos > MAX_FOTOS_POR_ANIMAL) {
+            throw new IllegalArgumentException("Máximo " + MAX_FOTOS_POR_ANIMAL + " fotos por animal");
+        }
+
+        List<String> fotosActuales = existente.getFotos() != null ? existente.getFotos() : List.of();
+        List<String> fotosARemover = fotosActuales.stream()
+                .filter(url -> !aMantener.contains(url))
+                .collect(Collectors.toList());
+
+        List<String> fotosNuevas = subirFotos(archivosNuevos);
+        List<String> fotosFinales = new ArrayList<>(aMantener);
+        fotosFinales.addAll(fotosNuevas);
+
         Animal actualizado = new Animal(
                 id, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
-                nuevoEstado, existente.getRefugioId(), null, null, fotos, existente.getFechaRegistro()
+                nuevoEstado, existente.getRefugioId(), null, null, fotosFinales, existente.getFechaRegistro()
         );
-        return animalRepository.save(actualizado);
+
+        Animal guardado;
+        try {
+            guardado = animalRepository.save(actualizado);
+        } catch (RuntimeException e) {
+            eliminarFotos(fotosNuevas);
+            throw e;
+        }
+        eliminarFotos(fotosARemover);
+        return guardado;
     }
 
     @Override
     public void eliminarAnimal(Long id) {
-        if (animalRepository.findById(id).isEmpty()) {
-            throw new IllegalArgumentException("Animal no encontrado: " + id);
-        }
+        Animal existente = animalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
         animalRepository.deleteById(id);
+        eliminarFotos(existente.getFotos());
+    }
+
+    private List<String> subirFotos(List<MultipartFile> archivos) throws IOException {
+        if (archivos == null || archivos.isEmpty()) {
+            return List.of();
+        }
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile archivo : archivos) {
+            urls.add(imageStoragePort.upload(archivo));
+        }
+        return urls;
+    }
+
+    private void eliminarFotos(List<String> urls) {
+        if (urls == null) {
+            return;
+        }
+        for (String url : urls) {
+            imageStoragePort.delete(url);
+        }
     }
 
     @Override
