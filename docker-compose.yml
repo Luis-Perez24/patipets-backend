@@ -11,8 +11,19 @@ services:
       - SUPABASE_URL=http://host.docker.internal:54321
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - SUPABASE_STORAGE_BUCKET=patipets
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - mailpit
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
     restart: unless-stopped
 
   frontend:

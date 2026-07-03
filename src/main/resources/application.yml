@@ -25,8 +25,22 @@ spring:
       max-file-size: 10MB
       max-request-size: 30MB
 
+  mail:
+    host: ${MAIL_HOST:127.0.0.1}
+    port: ${MAIL_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
 server:
   port: 8080
+
+notificaciones:
+  email:
+    remitente: no-reply@patipets.cl
 
 jwt:
   secret: ${JWT_SECRET}
