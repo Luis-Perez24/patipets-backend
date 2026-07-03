@@ -11,6 +11,7 @@ public interface UsuarioRepositoryPort {
     Usuario save(Usuario usuario);
     boolean existsByEmail(String email);
     List<Usuario> findAll(Rol rol, Boolean activo, String fechaDesde, String fechaHasta, int page, int size);
+    List<Usuario> findActivosByRol(Rol rol);
     long countAll();
     long countByRol(Rol rol);
 }

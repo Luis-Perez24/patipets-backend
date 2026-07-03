@@ -83,6 +83,13 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         return jpaRepository.countByRol(rol);
     }
 
+    @Override
+    public List<Usuario> findActivosByRol(Rol rol) {
+        return jpaRepository.findByRolAndActivoTrue(rol).stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
     private Usuario toDomain(UsuarioEntity entity) {
         return new Usuario(
                 entity.getId(),
