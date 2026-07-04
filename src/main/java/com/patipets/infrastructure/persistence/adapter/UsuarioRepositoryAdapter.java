@@ -100,6 +100,9 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
                 entity.getFotoPerfil(),
                 entity.getNumeroContacto(),
                 entity.getUbicacion(),
+                entity.getRegion(),
+                entity.getComuna(),
+                entity.getDireccion(),
                 entity.getBiografia(),
                 entity.isActivo(),
                 entity.getFechaRegistro()
@@ -116,6 +119,9 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         entity.setFotoPerfil(domain.getFotoPerfil());
         entity.setNumeroContacto(domain.getNumeroContacto());
         entity.setUbicacion(domain.getUbicacion());
+        entity.setRegion(domain.getRegion());
+        entity.setComuna(domain.getComuna());
+        entity.setDireccion(domain.getDireccion());
         entity.setBiografia(domain.getBiografia());
         entity.setActivo(domain.isActivo());
         entity.setFechaRegistro(domain.getFechaRegistro());

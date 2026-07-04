@@ -1,10 +1,13 @@
 package com.patipets.core.application.services;
 
+import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.PasswordEncoderPort;
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.AuthUseCase;
 import com.patipets.core.domain.enums.Rol;
 import com.patipets.core.domain.models.Usuario;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -12,24 +15,29 @@ public class AuthService implements AuthUseCase {
 
     private final UsuarioRepositoryPort usuarioRepository;
     private final PasswordEncoderPort passwordEncoder;
+    private final ImageStoragePort imageStoragePort;
 
     public AuthService(UsuarioRepositoryPort usuarioRepository,
-                         PasswordEncoderPort passwordEncoder) {
+                         PasswordEncoderPort passwordEncoder,
+                         ImageStoragePort imageStoragePort) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.imageStoragePort = imageStoragePort;
     }
 
 
 
     @Override
-    public Usuario registrar(String nombre, String email, String password) {
+    public Usuario registrar(String nombre, String email, String password, String numeroContacto,
+                              String region, String comuna, String direccion) {
         if (usuarioRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("El email ya está registrado");
         }
         String hashedPassword = passwordEncoder.encode(password);
         Usuario nuevo = new Usuario(
                 null, nombre, email, hashedPassword,
-                Rol.CIUDADANO, null, null, null, null, true, LocalDateTime.now()
+                Rol.CIUDADANO, null, numeroContacto, null,
+                region, comuna, direccion, null, true, LocalDateTime.now()
         );
         return usuarioRepository.save(nuevo);
     }
@@ -59,7 +67,8 @@ public class AuthService implements AuthUseCase {
             Usuario actualizado = new Usuario(
                     usuario.getId(), usuario.getNombre(), usuario.getEmail(),
                     usuario.getPassword(), rol, usuario.getFotoPerfil(),
-                    usuario.getNumeroContacto(), usuario.getUbicacion(), usuario.getBiografia(),
+                    usuario.getNumeroContacto(), usuario.getUbicacion(),
+                    usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
                     usuario.isActivo(), usuario.getFechaRegistro()
             );
             return usuarioRepository.save(actualizado);
@@ -71,7 +80,8 @@ public class AuthService implements AuthUseCase {
 
     @Override
     public Usuario actualizarPerfil(Long usuarioId, String nombre, String numeroContacto,
-                                     String ubicacion, String biografia, String fotoPerfil) {
+                                     String region, String comuna, String direccion,
+                                     String biografia, String fotoPerfil) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         String nuevoNombre = nombre != null ? nombre : usuario.getNombre();
@@ -80,10 +90,30 @@ public class AuthService implements AuthUseCase {
         Usuario actualizado = new Usuario(
                 usuario.getId(), nuevoNombre, usuario.getEmail(),
                 usuario.getPassword(), usuario.getRol(), nuevaFoto,
-                numeroContacto, ubicacion, nuevaBiografia,
+                numeroContacto, usuario.getUbicacion(), region, comuna, direccion, nuevaBiografia,
                 usuario.isActivo(), usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);
+    }
+
+    @Override
+    public Usuario actualizarFotoPerfil(Long usuarioId, MultipartFile foto) throws IOException {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        String fotoAnterior = usuario.getFotoPerfil();
+        String nuevaUrl = imageStoragePort.upload(foto);
+        Usuario actualizado = new Usuario(
+                usuario.getId(), usuario.getNombre(), usuario.getEmail(),
+                usuario.getPassword(), usuario.getRol(), nuevaUrl,
+                usuario.getNumeroContacto(), usuario.getUbicacion(),
+                usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(),
+                usuario.getBiografia(), usuario.isActivo(), usuario.getFechaRegistro()
+        );
+        Usuario guardado = usuarioRepository.save(actualizado);
+        if (fotoAnterior != null) {
+            imageStoragePort.delete(fotoAnterior);
+        }
+        return guardado;
     }
 
     @Override

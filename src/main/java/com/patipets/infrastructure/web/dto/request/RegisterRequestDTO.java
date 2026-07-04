@@ -26,12 +26,29 @@ public class RegisterRequestDTO {
     )
     private String password;
 
+    @NotBlank(message = "es obligatorio")
+    private String numeroContacto;
+
+    @NotBlank(message = "es obligatorio")
+    private String region;
+
+    @NotBlank(message = "es obligatorio")
+    private String comuna;
+
+    @NotBlank(message = "es obligatorio")
+    private String direccion;
+
     public RegisterRequestDTO() {}
 
-    public RegisterRequestDTO(String nombre, String email, String password) {
+    public RegisterRequestDTO(String nombre, String email, String password, String numeroContacto,
+                               String region, String comuna, String direccion) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
+        this.numeroContacto = numeroContacto;
+        this.region = region;
+        this.comuna = comuna;
+        this.direccion = direccion;
     }
 
     public String getNombre() { return nombre; }
@@ -40,4 +57,12 @@ public class RegisterRequestDTO {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public String getNumeroContacto() { return numeroContacto; }
+    public void setNumeroContacto(String numeroContacto) { this.numeroContacto = numeroContacto; }
+    public String getRegion() { return region; }
+    public void setRegion(String region) { this.region = region; }
+    public String getComuna() { return comuna; }
+    public void setComuna(String comuna) { this.comuna = comuna; }
+    public String getDireccion() { return direccion; }
+    public void setDireccion(String direccion) { this.direccion = direccion; }
 }

@@ -12,14 +12,17 @@ public class Usuario {
     private final String fotoPerfil;
     private final String numeroContacto;
     private final String ubicacion;
+    private final String region;
+    private final String comuna;
+    private final String direccion;
     private final String biografia;
     private final boolean activo;
     private final LocalDateTime fechaRegistro;
 
     public Usuario(Long id, String nombre, String email, String password,
                    Rol rol, String fotoPerfil, String numeroContacto,
-                   String ubicacion, String biografia,
-                   boolean activo, LocalDateTime fechaRegistro) {
+                   String ubicacion, String region, String comuna, String direccion,
+                   String biografia, boolean activo, LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
@@ -28,6 +31,9 @@ public class Usuario {
         this.fotoPerfil = fotoPerfil;
         this.numeroContacto = numeroContacto;
         this.ubicacion = ubicacion;
+        this.region = region;
+        this.comuna = comuna;
+        this.direccion = direccion;
         this.biografia = biografia;
         this.activo = activo;
         this.fechaRegistro = fechaRegistro;
@@ -41,6 +47,9 @@ public class Usuario {
     public String getFotoPerfil() { return fotoPerfil; }
     public String getNumeroContacto() { return numeroContacto; }
     public String getUbicacion() { return ubicacion; }
+    public String getRegion() { return region; }
+    public String getComuna() { return comuna; }
+    public String getDireccion() { return direccion; }
     public String getBiografia() { return biografia; }
     public boolean isActivo() { return activo; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
