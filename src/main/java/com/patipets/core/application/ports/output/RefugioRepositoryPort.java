@@ -14,4 +14,5 @@ public interface RefugioRepositoryPort {
     long countByEstado(EstadoRefugio estado);
     void vincularUsuario(Long usuarioId, Long refugioId);
     boolean perteneceAUsuario(Long refugioId, Long usuarioId);
+    List<Refugio> findByUsuario(Long usuarioId);
 }

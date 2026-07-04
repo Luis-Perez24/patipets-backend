@@ -14,10 +14,11 @@ public class Refugio {
     private final String email;
     private final String numeroContacto;
     private final EstadoRefugio estado;
+    private final String foto;
 
     public Refugio(Long id, String nombre, String direccion, String region,
                    String comuna, Double latitud, Double longitud, Integer capacidad,
-                   String email, String numeroContacto, EstadoRefugio estado) {
+                   String email, String numeroContacto, EstadoRefugio estado, String foto) {
         this.id = id;
         this.nombre = nombre;
         this.direccion = direccion;
@@ -29,6 +30,7 @@ public class Refugio {
         this.email = email;
         this.numeroContacto = numeroContacto;
         this.estado = estado;
+        this.foto = foto;
     }
 
     public Long getId() { return id; }
@@ -42,4 +44,5 @@ public class Refugio {
     public String getEmail() { return email; }
     public String getNumeroContacto() { return numeroContacto; }
     public EstadoRefugio getEstado() { return estado; }
+    public String getFoto() { return foto; }
 }

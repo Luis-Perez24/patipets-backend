@@ -36,6 +36,8 @@ public class RefugioEntity {
     @Column(nullable = false)
     private EstadoRefugio estado;
 
+    private String foto;
+
     public RefugioEntity() {}
 
     public Long getId() { return id; }
@@ -60,4 +62,6 @@ public class RefugioEntity {
     public void setNumeroContacto(String numeroContacto) { this.numeroContacto = numeroContacto; }
     public EstadoRefugio getEstado() { return estado; }
     public void setEstado(EstadoRefugio estado) { this.estado = estado; }
+    public String getFoto() { return foto; }
+    public void setFoto(String foto) { this.foto = foto; }
 }

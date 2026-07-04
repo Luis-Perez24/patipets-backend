@@ -1,27 +1,34 @@
 package com.patipets.core.application.services;
 
+import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.models.Refugio;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 public class GestionRefugioService implements GestionRefugioUseCase {
 
     private final RefugioRepositoryPort refugioRepository;
+    private final ImageStoragePort imageStoragePort;
 
-    public GestionRefugioService(RefugioRepositoryPort refugioRepository) {
+    public GestionRefugioService(RefugioRepositoryPort refugioRepository, ImageStoragePort imageStoragePort) {
         this.refugioRepository = refugioRepository;
+        this.imageStoragePort = imageStoragePort;
     }
 
     @Override
     public Refugio solicitar(String nombre, String direccion, String region, String comuna,
                               Double latitud, Double longitud, Integer capacidad,
-                              String email, String numeroContacto, Long usuarioId) {
+                              String email, String numeroContacto, Long usuarioId,
+                              MultipartFile foto) throws IOException {
+        String fotoUrl = (foto != null && !foto.isEmpty()) ? imageStoragePort.upload(foto) : null;
         Refugio nuevo = new Refugio(
                 null, nombre, direccion, region, comuna,
-                latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE
+                latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE, fotoUrl
         );
         Refugio guardado = refugioRepository.save(nuevo);
         refugioRepository.vincularUsuario(usuarioId, guardado.getId());
@@ -39,7 +46,8 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getId(), refugio.getNombre(), refugio.getDireccion(),
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
-                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.APROBADO
+                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.APROBADO,
+                refugio.getFoto()
         );
         return refugioRepository.save(actualizado);
     }
@@ -55,7 +63,8 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getId(), refugio.getNombre(), refugio.getDireccion(),
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
-                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.RECHAZADO
+                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.RECHAZADO,
+                refugio.getFoto()
         );
         return refugioRepository.save(actualizado);
     }
@@ -73,5 +82,10 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     @Override
     public Optional<Refugio> obtenerPorId(Long id) {
         return refugioRepository.findById(id);
+    }
+
+    @Override
+    public List<Refugio> listarMisRefugios(Long usuarioId) {
+        return refugioRepository.findByUsuario(usuarioId);
     }
 }

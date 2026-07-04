@@ -1,11 +1,14 @@
 package com.patipets.infrastructure.web.controller;
 
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
+import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.security.RefugioAccessGuard;
 import com.patipets.infrastructure.web.dto.AnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
+import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalRequestDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalUpdateRequestDTO;
 import jakarta.validation.Valid;
@@ -26,11 +29,26 @@ import java.util.stream.Collectors;
 public class RefugioController {
 
     private final GestionAnimalUseCase gestionAnimalUseCase;
+    private final GestionRefugioUseCase gestionRefugioUseCase;
     private final RefugioAccessGuard refugioAccessGuard;
 
-    public RefugioController(GestionAnimalUseCase gestionAnimalUseCase, RefugioAccessGuard refugioAccessGuard) {
+    public RefugioController(GestionAnimalUseCase gestionAnimalUseCase,
+                              GestionRefugioUseCase gestionRefugioUseCase,
+                              RefugioAccessGuard refugioAccessGuard) {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
+        this.gestionRefugioUseCase = gestionRefugioUseCase;
         this.refugioAccessGuard = refugioAccessGuard;
+    }
+
+    @GetMapping("/mis-solicitudes")
+    public ResponseEntity<ApiResponseDTO<List<RefugioResponseDTO>>> misSolicitudes(
+            Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        List<Refugio> refugios = gestionRefugioUseCase.listarMisRefugios(usuario.getId());
+        var dto = refugios.stream()
+                .map(RefugioResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
 
     @PostMapping(value = "/{refugioId}/animales", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

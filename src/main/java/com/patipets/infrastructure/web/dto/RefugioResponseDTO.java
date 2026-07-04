@@ -19,6 +19,7 @@ public class RefugioResponseDTO {
     private String numeroContacto;
 
     private String estado;
+    private String foto;
 
     public static RefugioResponseDTO fromDomain(Refugio refugio) {
         RefugioResponseDTO dto = new RefugioResponseDTO();
@@ -33,6 +34,7 @@ public class RefugioResponseDTO {
         dto.email = refugio.getEmail();
         dto.numeroContacto = refugio.getNumeroContacto();
         dto.estado = refugio.getEstado().name();
+        dto.foto = refugio.getFoto();
         return dto;
     }
 
@@ -47,4 +49,5 @@ public class RefugioResponseDTO {
     public String getEmail() { return email; }
     public String getNumeroContacto() { return numeroContacto; }
     public String getEstado() { return estado; }
+    public String getFoto() { return foto; }
 }
