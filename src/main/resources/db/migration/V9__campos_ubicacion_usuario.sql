@@ -1,0 +1,4 @@
+ALTER TABLE usuarios
+    ADD COLUMN region VARCHAR(100),
+    ADD COLUMN comuna VARCHAR(100),
+    ADD COLUMN direccion VARCHAR(500);

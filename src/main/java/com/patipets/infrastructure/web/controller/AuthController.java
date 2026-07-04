@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -33,7 +35,9 @@ public class AuthController {
             @Valid @RequestBody RegisterRequestDTO request) {
         try {
             Usuario usuario = authUseCase.registrar(
-                    request.getNombre(), request.getEmail(), request.getPassword());
+                    request.getNombre(), request.getEmail(), request.getPassword(),
+                    request.getNumeroContacto(), request.getRegion(),
+                    request.getComuna(), request.getDireccion());
             String token = tokenProvider.generateToken(usuario);
             AuthResponseDTO response = new AuthResponseDTO(token,
                     UsuarioResponseDTO.fromDomain(usuario));
@@ -89,13 +93,32 @@ public class AuthController {
             Usuario usuarioActual = (Usuario) authentication.getPrincipal();
             Usuario usuario = authUseCase.actualizarPerfil(
                     usuarioActual.getId(), request.getNombre(),
-                    request.getNumeroContacto(), request.getUbicacion(),
+                    request.getNumeroContacto(), request.getRegion(),
+                    request.getComuna(), request.getDireccion(),
                     request.getBiografia(), request.getFotoPerfil());
             return ResponseEntity.ok(ApiResponseDTO.ok("Perfil actualizado",
                     UsuarioResponseDTO.fromDomain(usuario)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PostMapping(value = "/me/foto", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponseDTO<UsuarioResponseDTO>> actualizarFotoPerfil(
+            Authentication authentication,
+            @RequestPart("archivo") MultipartFile archivo) {
+        try {
+            Usuario usuarioActual = (Usuario) authentication.getPrincipal();
+            Usuario usuario = authUseCase.actualizarFotoPerfil(usuarioActual.getId(), archivo);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Foto de perfil actualizada",
+                    UsuarioResponseDTO.fromDomain(usuario)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponseDTO.error("Error al procesar la imagen: " + e.getMessage()));
         }
     }
 

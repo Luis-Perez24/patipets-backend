@@ -18,6 +18,12 @@ public class UsuarioResponseDTO {
 
     private String ubicacion;
 
+    private String region;
+
+    private String comuna;
+
+    private String direccion;
+
     private String biografia;
 
     private boolean activo;
@@ -36,6 +42,9 @@ public class UsuarioResponseDTO {
         dto.fotoPerfil = usuario.getFotoPerfil();
         dto.numeroContacto = usuario.getNumeroContacto();
         dto.ubicacion = usuario.getUbicacion();
+        dto.region = usuario.getRegion();
+        dto.comuna = usuario.getComuna();
+        dto.direccion = usuario.getDireccion();
         dto.biografia = usuario.getBiografia();
         dto.activo = usuario.isActivo();
         dto.fechaRegistro = usuario.getFechaRegistro().toString();
@@ -49,6 +58,9 @@ public class UsuarioResponseDTO {
     public String getFotoPerfil() { return fotoPerfil; }
     public String getNumeroContacto() { return numeroContacto; }
     public String getUbicacion() { return ubicacion; }
+    public String getRegion() { return region; }
+    public String getComuna() { return comuna; }
+    public String getDireccion() { return direccion; }
     public String getBiografia() { return biografia; }
     public boolean isActivo() { return activo; }
     public String getFechaRegistro() { return fechaRegistro; }

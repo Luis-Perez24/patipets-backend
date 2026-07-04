@@ -37,7 +37,8 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         Usuario actualizado = new Usuario(
                 usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getPassword(),
                 usuario.getRol(), usuario.getFotoPerfil(),
-                usuario.getNumeroContacto(), usuario.getUbicacion(), usuario.getBiografia(),
+                usuario.getNumeroContacto(), usuario.getUbicacion(),
+                usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
                 false, usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);
@@ -53,7 +54,8 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         Usuario actualizado = new Usuario(
                 usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getPassword(),
                 usuario.getRol(), usuario.getFotoPerfil(),
-                usuario.getNumeroContacto(), usuario.getUbicacion(), usuario.getBiografia(),
+                usuario.getNumeroContacto(), usuario.getUbicacion(),
+                usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
                 true, usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);
@@ -73,7 +75,8 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
         Usuario actualizado = new Usuario(
                 id, nuevoNombre, nuevoEmail, usuario.getPassword(),
                 nuevoRol, usuario.getFotoPerfil(),
-                nuevoNumeroContacto, nuevaUbicacion, nuevaBiografia,
+                nuevoNumeroContacto, nuevaUbicacion,
+                usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), nuevaBiografia,
                 usuario.isActivo(), usuario.getFechaRegistro()
         );
         return usuarioRepository.save(actualizado);

@@ -94,9 +94,9 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public AuthUseCase authUseCase(PasswordEncoderPort passwordEncoder) {
+    public AuthUseCase authUseCase(PasswordEncoderPort passwordEncoder, ImageStoragePort imageStoragePort) {
         return new AuthService(
-                new UsuarioRepositoryAdapter(usuarioJpaRepository), passwordEncoder);
+                new UsuarioRepositoryAdapter(usuarioJpaRepository), passwordEncoder, imageStoragePort);
     }
 
     @Bean
