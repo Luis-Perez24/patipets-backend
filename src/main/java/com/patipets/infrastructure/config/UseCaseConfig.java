@@ -29,12 +29,14 @@ import com.patipets.infrastructure.persistence.adapter.AnimalRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.EstadisticaRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.NotificacionRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.RefugioRepositoryAdapter;
+import com.patipets.infrastructure.persistence.adapter.RespuestaAlertaRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.SolicitudAdopcionRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.UsuarioRepositoryAdapter;
 import com.patipets.infrastructure.persistence.repository.AlertaJpaRepository;
 import com.patipets.infrastructure.persistence.repository.AnimalJpaRepository;
 import com.patipets.infrastructure.persistence.repository.NotificacionJpaRepository;
 import com.patipets.infrastructure.persistence.repository.RefugioJpaRepository;
+import com.patipets.infrastructure.persistence.repository.RespuestaAlertaJpaRepository;
 import com.patipets.infrastructure.persistence.repository.SolicitudAdopcionJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioRefugioJpaRepository;
@@ -51,6 +53,7 @@ public class UseCaseConfig {
     private final AlertaJpaRepository alertaJpaRepository;
     private final UsuarioRefugioJpaRepository usuarioRefugioJpaRepository;
     private final NotificacionJpaRepository notificacionJpaRepository;
+    private final RespuestaAlertaJpaRepository respuestaAlertaJpaRepository;
 
     public UseCaseConfig(AnimalJpaRepository animalJpaRepository,
                           RefugioJpaRepository refugioJpaRepository,
@@ -58,7 +61,8 @@ public class UseCaseConfig {
                           SolicitudAdopcionJpaRepository solicitudJpaRepository,
                           AlertaJpaRepository alertaJpaRepository,
                           UsuarioRefugioJpaRepository usuarioRefugioJpaRepository,
-                          NotificacionJpaRepository notificacionJpaRepository) {
+                          NotificacionJpaRepository notificacionJpaRepository,
+                          RespuestaAlertaJpaRepository respuestaAlertaJpaRepository) {
         this.animalJpaRepository = animalJpaRepository;
         this.refugioJpaRepository = refugioJpaRepository;
         this.usuarioJpaRepository = usuarioJpaRepository;
@@ -66,6 +70,7 @@ public class UseCaseConfig {
         this.alertaJpaRepository = alertaJpaRepository;
         this.usuarioRefugioJpaRepository = usuarioRefugioJpaRepository;
         this.notificacionJpaRepository = notificacionJpaRepository;
+        this.respuestaAlertaJpaRepository = respuestaAlertaJpaRepository;
     }
 
     @Bean
@@ -123,7 +128,10 @@ public class UseCaseConfig {
 
     @Bean
     public GestionAlertaUseCase gestionAlertaUseCase(EventPublisherPort eventPublisher) {
-        return new GestionAlertaService(new AlertaRepositoryAdapter(alertaJpaRepository), eventPublisher);
+        return new GestionAlertaService(
+                new AlertaRepositoryAdapter(alertaJpaRepository),
+                eventPublisher,
+                new RespuestaAlertaRepositoryAdapter(respuestaAlertaJpaRepository));
     }
 
     @Bean
