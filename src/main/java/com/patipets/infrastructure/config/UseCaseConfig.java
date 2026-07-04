@@ -100,9 +100,10 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionRefugioUseCase gestionRefugioUseCase() {
+    public GestionRefugioUseCase gestionRefugioUseCase(ImageStoragePort imageStoragePort) {
         return new GestionRefugioService(
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository));
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
+                imageStoragePort);
     }
 
     @Bean

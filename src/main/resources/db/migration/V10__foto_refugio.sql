@@ -1,0 +1,2 @@
+ALTER TABLE refugios
+    ADD COLUMN foto VARCHAR(500);

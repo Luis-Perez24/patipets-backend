@@ -73,6 +73,18 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
         return usuarioRefugioJpaRepository.existsByUsuarioIdAndRefugioId(usuarioId, refugioId);
     }
 
+    @Override
+    public List<Refugio> findByUsuario(Long usuarioId) {
+        List<Long> refugioIds = usuarioRefugioJpaRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(UsuarioRefugioEntity::getRefugioId)
+                .collect(Collectors.toList());
+        return jpaRepository.findAllById(refugioIds)
+                .stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
     private Refugio toDomain(RefugioEntity entity) {
         return new Refugio(
                 entity.getId(),
@@ -85,7 +97,8 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
                 entity.getCapacidad(),
                 entity.getEmail(),
                 entity.getNumeroContacto(),
-                entity.getEstado()
+                entity.getEstado(),
+                entity.getFoto()
         );
     }
 
@@ -102,6 +115,7 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
         entity.setEmail(refugio.getEmail());
         entity.setNumeroContacto(refugio.getNumeroContacto());
         entity.setEstado(refugio.getEstado());
+        entity.setFoto(refugio.getFoto());
         return entity;
     }
 }
