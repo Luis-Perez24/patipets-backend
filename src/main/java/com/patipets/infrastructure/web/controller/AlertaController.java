@@ -51,7 +51,7 @@ public class AlertaController {
     }
 
     @GetMapping("/refugio/{refugioId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO')")
     public ResponseEntity<ApiResponseDTO<List<AlertaResponseDTO>>> listarPorRefugio(
             @PathVariable Long refugioId) {
         List<Alerta> alertas = gestionAlertaUseCase.listarPorRefugio(refugioId);
@@ -62,7 +62,7 @@ public class AlertaController {
     }
 
     @GetMapping("/activas")
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO')")
     public ResponseEntity<ApiResponseDTO<List<AlertaResponseDTO>>> listarActivas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -98,7 +98,7 @@ public class AlertaController {
     }
 
     @PostMapping("/{id}/responder")
-    @PreAuthorize("hasAnyRole('VOLUNTARIO')")
+    @PreAuthorize("hasAnyRole('VOLUNTARIO', 'PADRINO')")
     public ResponseEntity<ApiResponseDTO<RespuestaAlertaResponseDTO>> responderAlerta(
             Authentication authentication,
             @PathVariable Long id,
@@ -128,7 +128,7 @@ public class AlertaController {
     }
 
     @GetMapping("/{id}/respuestas")
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO')")
     public ResponseEntity<ApiResponseDTO<List<RespuestaAlertaResponseDTO>>> listarRespuestas(
             @PathVariable Long id) {
         List<RespuestaAlerta> respuestas = gestionAlertaUseCase.listarRespuestasPorAlerta(id);

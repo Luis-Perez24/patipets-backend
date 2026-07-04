@@ -11,6 +11,7 @@ import com.patipets.core.application.services.ConsultarEstadisticasDashboardServ
 import com.patipets.core.application.services.ConsultarMapaRefugiosService;
 import com.patipets.core.application.services.GestionAlertaService;
 import com.patipets.core.application.services.GestionAnimalService;
+import com.patipets.core.application.services.GestionApadrinamientoService;
 import com.patipets.core.application.services.GestionNotificacionService;
 import com.patipets.core.application.services.GestionRefugioService;
 import com.patipets.core.application.services.GestionUsuarioService;
@@ -21,11 +22,13 @@ import com.patipets.core.application.useCase.ConsultarEstadisticasDashboardUseCa
 import com.patipets.core.application.useCase.ConsultarMapaRefugiosUseCase;
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
+import com.patipets.core.application.useCase.GestionApadrinamientoUseCase;
 import com.patipets.core.application.useCase.GestionNotificacionUseCase;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.application.useCase.GestionUsuarioUseCase;
 import com.patipets.infrastructure.persistence.adapter.AlertaRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.AnimalRepositoryAdapter;
+import com.patipets.infrastructure.persistence.adapter.ApadrinamientoRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.EstadisticaRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.NotificacionRepositoryAdapter;
 import com.patipets.infrastructure.persistence.adapter.RefugioRepositoryAdapter;
@@ -34,6 +37,7 @@ import com.patipets.infrastructure.persistence.adapter.SolicitudAdopcionReposito
 import com.patipets.infrastructure.persistence.adapter.UsuarioRepositoryAdapter;
 import com.patipets.infrastructure.persistence.repository.AlertaJpaRepository;
 import com.patipets.infrastructure.persistence.repository.AnimalJpaRepository;
+import com.patipets.infrastructure.persistence.repository.ApadrinamientoJpaRepository;
 import com.patipets.infrastructure.persistence.repository.NotificacionJpaRepository;
 import com.patipets.infrastructure.persistence.repository.RefugioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.RespuestaAlertaJpaRepository;
@@ -54,6 +58,7 @@ public class UseCaseConfig {
     private final UsuarioRefugioJpaRepository usuarioRefugioJpaRepository;
     private final NotificacionJpaRepository notificacionJpaRepository;
     private final RespuestaAlertaJpaRepository respuestaAlertaJpaRepository;
+    private final ApadrinamientoJpaRepository apadrinamientoJpaRepository;
 
     public UseCaseConfig(AnimalJpaRepository animalJpaRepository,
                           RefugioJpaRepository refugioJpaRepository,
@@ -62,7 +67,8 @@ public class UseCaseConfig {
                           AlertaJpaRepository alertaJpaRepository,
                           UsuarioRefugioJpaRepository usuarioRefugioJpaRepository,
                           NotificacionJpaRepository notificacionJpaRepository,
-                          RespuestaAlertaJpaRepository respuestaAlertaJpaRepository) {
+                          RespuestaAlertaJpaRepository respuestaAlertaJpaRepository,
+                          ApadrinamientoJpaRepository apadrinamientoJpaRepository) {
         this.animalJpaRepository = animalJpaRepository;
         this.refugioJpaRepository = refugioJpaRepository;
         this.usuarioJpaRepository = usuarioJpaRepository;
@@ -71,6 +77,7 @@ public class UseCaseConfig {
         this.usuarioRefugioJpaRepository = usuarioRefugioJpaRepository;
         this.notificacionJpaRepository = notificacionJpaRepository;
         this.respuestaAlertaJpaRepository = respuestaAlertaJpaRepository;
+        this.apadrinamientoJpaRepository = apadrinamientoJpaRepository;
     }
 
     @Bean
@@ -143,5 +150,13 @@ public class UseCaseConfig {
                 new AnimalRepositoryAdapter(animalJpaRepository),
                 new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
                 emailSender);
+    }
+
+    @Bean
+    public GestionApadrinamientoUseCase gestionApadrinamientoUseCase() {
+        return new GestionApadrinamientoService(
+                new ApadrinamientoRepositoryAdapter(apadrinamientoJpaRepository),
+                new AnimalRepositoryAdapter(animalJpaRepository),
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository));
     }
 }
