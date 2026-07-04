@@ -5,6 +5,7 @@ import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.models.Refugio;
 import java.util.List;
+import java.util.Optional;
 
 public class GestionRefugioService implements GestionRefugioUseCase {
 
@@ -67,5 +68,10 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     @Override
     public boolean perteneceAUsuario(Long refugioId, Long usuarioId) {
         return refugioRepository.perteneceAUsuario(refugioId, usuarioId);
+    }
+
+    @Override
+    public Optional<Refugio> obtenerPorId(Long id) {
+        return refugioRepository.findById(id);
     }
 }

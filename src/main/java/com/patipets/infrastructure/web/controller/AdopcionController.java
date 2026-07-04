@@ -1,15 +1,21 @@
 package com.patipets.infrastructure.web.controller;
 
+import com.patipets.core.application.useCase.ConsultarCatalogoPublicoUseCase;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
+import com.patipets.core.application.useCase.GestionRefugioUseCase;
+import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.security.RefugioAccessGuard;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
+import com.patipets.infrastructure.web.dto.MiPostulacionResponseDTO;
 import com.patipets.infrastructure.web.dto.SolicitudAdopcionResponseDTO;
 import com.patipets.infrastructure.web.dto.request.SolicitudAdopcionRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +27,24 @@ import java.util.stream.Collectors;
 public class AdopcionController {
 
     private final GestionAnimalUseCase gestionAnimalUseCase;
+    private final GestionRefugioUseCase gestionRefugioUseCase;
+    private final ConsultarCatalogoPublicoUseCase catalogoUseCase;
     private final RefugioAccessGuard refugioAccessGuard;
 
-    public AdopcionController(GestionAnimalUseCase gestionAnimalUseCase, RefugioAccessGuard refugioAccessGuard) {
+    public AdopcionController(GestionAnimalUseCase gestionAnimalUseCase,
+                               GestionRefugioUseCase gestionRefugioUseCase,
+                               ConsultarCatalogoPublicoUseCase catalogoUseCase,
+                               RefugioAccessGuard refugioAccessGuard) {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
+        this.gestionRefugioUseCase = gestionRefugioUseCase;
+        this.catalogoUseCase = catalogoUseCase;
         this.refugioAccessGuard = refugioAccessGuard;
+    }
+
+    private MiPostulacionResponseDTO enriquecer(SolicitudAdopcion solicitud) {
+        Animal animal = catalogoUseCase.obtenerPorId(solicitud.getAnimalId()).orElse(null);
+        Refugio refugio = gestionRefugioUseCase.obtenerPorId(solicitud.getRefugioId()).orElse(null);
+        return MiPostulacionResponseDTO.fromDomain(solicitud, animal, refugio);
     }
 
     @PostMapping("/solicitar")
@@ -51,14 +70,26 @@ public class AdopcionController {
     }
 
     @GetMapping("/mis-solicitudes")
-    public ResponseEntity<ApiResponseDTO<List<SolicitudAdopcionResponseDTO>>> misSolicitudes(
+    public ResponseEntity<ApiResponseDTO<List<MiPostulacionResponseDTO>>> misSolicitudes(
             Authentication authentication) {
         Usuario usuario = (Usuario) authentication.getPrincipal();
         List<SolicitudAdopcion> solicitudes = gestionAnimalUseCase.listarSolicitudesPorAdoptante(usuario.getId());
         var dto = solicitudes.stream()
-                .map(SolicitudAdopcionResponseDTO::fromDomain)
+                .map(this::enriquecer)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    @GetMapping("/solicitudes/{id}")
+    public ResponseEntity<ApiResponseDTO<MiPostulacionResponseDTO>> miSolicitudDetalle(
+            Authentication authentication,
+            @PathVariable Long id) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        SolicitudAdopcion solicitud = gestionAnimalUseCase.obtenerSolicitudPorId(id);
+        if (!solicitud.getAdoptanteId().equals(usuario.getId())) {
+            throw new AccessDeniedException("No tienes acceso a esta postulación");
+        }
+        return ResponseEntity.ok(ApiResponseDTO.ok(enriquecer(solicitud)));
     }
 
     @GetMapping("/refugio/{refugioId}/solicitudes")
