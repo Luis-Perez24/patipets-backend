@@ -20,6 +20,9 @@ public class SupabaseStorageAdapter implements ImageStoragePort {
     @Value("${supabase.url}")
     private String supabaseUrl;
 
+    @Value("${supabase.public-url}")
+    private String publicUrl;
+
     @Value("${supabase.key}")
     private String supabaseKey;
 
@@ -56,7 +59,7 @@ public class SupabaseStorageAdapter implements ImageStoragePort {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            return supabaseUrl + "/storage/v1/object/public/" + supabaseBucket + "/" + nombre;
+            return publicUrl + "/storage/v1/object/public/" + supabaseBucket + "/" + nombre;
         }
         throw new RuntimeException("Error al subir imagen a Supabase: " + response.getStatusCode());
     }

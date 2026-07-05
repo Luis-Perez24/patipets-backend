@@ -48,5 +48,6 @@ jwt:
 
 supabase:
   url: http://127.0.0.1:54321
+  public-url: ${SUPABASE_PUBLIC_URL:http://127.0.0.1:54321}
   key: ${SUPABASE_SERVICE_KEY}
   bucket: ${SUPABASE_STORAGE_BUCKET:patipets}
