@@ -7,6 +7,7 @@ import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.models.Refugio;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +29,8 @@ public class GestionRefugioService implements GestionRefugioUseCase {
         String fotoUrl = (foto != null && !foto.isEmpty()) ? imageStoragePort.upload(foto) : null;
         Refugio nuevo = new Refugio(
                 null, nombre, direccion, region, comuna,
-                latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE, fotoUrl
+                latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE, fotoUrl,
+                usuarioId, null, LocalDateTime.now()
         );
         Refugio guardado = refugioRepository.save(nuevo);
         refugioRepository.vincularUsuario(usuarioId, guardado.getId());
@@ -47,7 +49,8 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
                 refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.APROBADO,
-                refugio.getFoto()
+                refugio.getFoto(), refugio.getUsuarioId(), refugio.getUsuarioNombre(),
+                refugio.getFechaCreacion()
         );
         return refugioRepository.save(actualizado);
     }
@@ -64,7 +67,8 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
                 refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.RECHAZADO,
-                refugio.getFoto()
+                refugio.getFoto(), refugio.getUsuarioId(), refugio.getUsuarioNombre(),
+                refugio.getFechaCreacion()
         );
         return refugioRepository.save(actualizado);
     }

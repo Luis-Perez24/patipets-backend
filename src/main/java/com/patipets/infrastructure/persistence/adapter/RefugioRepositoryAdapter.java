@@ -4,10 +4,13 @@ import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.infrastructure.persistence.entity.RefugioEntity;
+import com.patipets.infrastructure.persistence.entity.UsuarioEntity;
 import com.patipets.infrastructure.persistence.entity.UsuarioRefugioEntity;
 import com.patipets.infrastructure.persistence.repository.RefugioJpaRepository;
+import com.patipets.infrastructure.persistence.repository.UsuarioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioRefugioJpaRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -15,11 +18,14 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
 
     private final RefugioJpaRepository jpaRepository;
     private final UsuarioRefugioJpaRepository usuarioRefugioJpaRepository;
+    private final UsuarioJpaRepository usuarioJpaRepository;
 
     public RefugioRepositoryAdapter(RefugioJpaRepository jpaRepository,
-                                     UsuarioRefugioJpaRepository usuarioRefugioJpaRepository) {
+                                     UsuarioRefugioJpaRepository usuarioRefugioJpaRepository,
+                                     UsuarioJpaRepository usuarioJpaRepository) {
         this.jpaRepository = jpaRepository;
         this.usuarioRefugioJpaRepository = usuarioRefugioJpaRepository;
+        this.usuarioJpaRepository = usuarioJpaRepository;
     }
 
     @Override
@@ -32,9 +38,16 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
 
     @Override
     public List<Refugio> findByEstado(EstadoRefugio estado) {
-        return jpaRepository.findByEstado(estado)
-                .stream()
-                .map(this::toDomain)
+        List<RefugioEntity> entities = jpaRepository.findByEstado(estado);
+        List<Long> usuarioIds = entities.stream()
+                .map(RefugioEntity::getUsuarioId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Long, String> userNames = usuarioJpaRepository.findAllById(usuarioIds).stream()
+                .collect(Collectors.toMap(UsuarioEntity::getId, UsuarioEntity::getNombre));
+        return entities.stream()
+                .map(e -> toDomain(e, userNames.get(e.getUsuarioId())))
                 .collect(Collectors.toList());
     }
 
@@ -86,6 +99,10 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
     }
 
     private Refugio toDomain(RefugioEntity entity) {
+        return toDomain(entity, null);
+    }
+
+    private Refugio toDomain(RefugioEntity entity, String usuarioNombre) {
         return new Refugio(
                 entity.getId(),
                 entity.getNombre(),
@@ -98,7 +115,10 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
                 entity.getEmail(),
                 entity.getNumeroContacto(),
                 entity.getEstado(),
-                entity.getFoto()
+                entity.getFoto(),
+                entity.getUsuarioId(),
+                usuarioNombre,
+                entity.getFechaCreacion()
         );
     }
 
@@ -116,6 +136,8 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
         entity.setNumeroContacto(refugio.getNumeroContacto());
         entity.setEstado(refugio.getEstado());
         entity.setFoto(refugio.getFoto());
+        entity.setUsuarioId(refugio.getUsuarioId());
+        entity.setFechaCreacion(refugio.getFechaCreacion());
         return entity;
     }
 }

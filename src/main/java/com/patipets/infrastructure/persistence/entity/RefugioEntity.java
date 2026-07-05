@@ -2,6 +2,7 @@ package com.patipets.infrastructure.persistence.entity;
 
 import com.patipets.core.domain.enums.EstadoRefugio;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "refugios")
@@ -38,6 +39,12 @@ public class RefugioEntity {
 
     private String foto;
 
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
     public RefugioEntity() {}
 
     public Long getId() { return id; }
@@ -64,4 +71,8 @@ public class RefugioEntity {
     public void setEstado(EstadoRefugio estado) { this.estado = estado; }
     public String getFoto() { return foto; }
     public void setFoto(String foto) { this.foto = foto; }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
 }

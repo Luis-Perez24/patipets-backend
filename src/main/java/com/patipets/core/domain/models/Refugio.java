@@ -1,6 +1,7 @@
 package com.patipets.core.domain.models;
 
 import com.patipets.core.domain.enums.EstadoRefugio;
+import java.time.LocalDateTime;
 
 public class Refugio {
     private final Long id;
@@ -15,10 +16,21 @@ public class Refugio {
     private final String numeroContacto;
     private final EstadoRefugio estado;
     private final String foto;
+    private final Long usuarioId;
+    private final String usuarioNombre;
+    private final LocalDateTime fechaCreacion;
 
     public Refugio(Long id, String nombre, String direccion, String region,
                    String comuna, Double latitud, Double longitud, Integer capacidad,
                    String email, String numeroContacto, EstadoRefugio estado, String foto) {
+        this(id, nombre, direccion, region, comuna, latitud, longitud, capacidad,
+             email, numeroContacto, estado, foto, null, null, null);
+    }
+
+    public Refugio(Long id, String nombre, String direccion, String region,
+                   String comuna, Double latitud, Double longitud, Integer capacidad,
+                   String email, String numeroContacto, EstadoRefugio estado, String foto,
+                   Long usuarioId, String usuarioNombre, LocalDateTime fechaCreacion) {
         this.id = id;
         this.nombre = nombre;
         this.direccion = direccion;
@@ -31,6 +43,9 @@ public class Refugio {
         this.numeroContacto = numeroContacto;
         this.estado = estado;
         this.foto = foto;
+        this.usuarioId = usuarioId;
+        this.usuarioNombre = usuarioNombre;
+        this.fechaCreacion = fechaCreacion;
     }
 
     public Long getId() { return id; }
@@ -45,4 +60,7 @@ public class Refugio {
     public String getNumeroContacto() { return numeroContacto; }
     public EstadoRefugio getEstado() { return estado; }
     public String getFoto() { return foto; }
+    public Long getUsuarioId() { return usuarioId; }
+    public String getUsuarioNombre() { return usuarioNombre; }
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
 }

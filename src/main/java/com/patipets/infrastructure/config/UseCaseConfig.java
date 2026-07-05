@@ -76,7 +76,7 @@ public class UseCaseConfig {
     @Bean
     public ConsultarMapaRefugiosUseCase consultarMapaRefugiosUseCase() {
         return new ConsultarMapaRefugiosService(
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository));
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository));
     }
 
     @Bean
@@ -102,7 +102,7 @@ public class UseCaseConfig {
     @Bean
     public GestionRefugioUseCase gestionRefugioUseCase(ImageStoragePort imageStoragePort) {
         return new GestionRefugioService(
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
                 imageStoragePort);
     }
 
@@ -112,7 +112,7 @@ public class UseCaseConfig {
         return new GestionAnimalService(
                 new AnimalRepositoryAdapter(animalJpaRepository),
                 new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
                 imageStoragePort,
                 eventPublisher);
     }
@@ -134,7 +134,7 @@ public class UseCaseConfig {
                 new UsuarioRepositoryAdapter(usuarioJpaRepository),
                 new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
                 new AnimalRepositoryAdapter(animalJpaRepository),
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository),
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
                 emailSender);
     }
 }

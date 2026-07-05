@@ -2,6 +2,7 @@ package com.patipets.infrastructure.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.patipets.core.domain.models.Refugio;
+import java.time.LocalDateTime;
 
 public class RefugioResponseDTO {
 
@@ -21,6 +22,15 @@ public class RefugioResponseDTO {
     private String estado;
     private String foto;
 
+    @JsonProperty("usuario_id")
+    private Long usuarioId;
+
+    @JsonProperty("usuario_nombre")
+    private String usuarioNombre;
+
+    @JsonProperty("fecha_creacion")
+    private LocalDateTime fechaCreacion;
+
     public static RefugioResponseDTO fromDomain(Refugio refugio) {
         RefugioResponseDTO dto = new RefugioResponseDTO();
         dto.id = refugio.getId();
@@ -35,6 +45,9 @@ public class RefugioResponseDTO {
         dto.numeroContacto = refugio.getNumeroContacto();
         dto.estado = refugio.getEstado().name();
         dto.foto = refugio.getFoto();
+        dto.usuarioId = refugio.getUsuarioId();
+        dto.usuarioNombre = refugio.getUsuarioNombre();
+        dto.fechaCreacion = refugio.getFechaCreacion();
         return dto;
     }
 
@@ -50,4 +63,7 @@ public class RefugioResponseDTO {
     public String getNumeroContacto() { return numeroContacto; }
     public String getEstado() { return estado; }
     public String getFoto() { return foto; }
+    public Long getUsuarioId() { return usuarioId; }
+    public String getUsuarioNombre() { return usuarioNombre; }
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
 }
