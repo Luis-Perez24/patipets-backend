@@ -3,11 +3,13 @@ package com.patipets.infrastructure.persistence.repository;
 import com.patipets.core.domain.enums.EstadoAnimal;
 import com.patipets.infrastructure.persistence.entity.AnimalEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 
-public interface AnimalJpaRepository extends JpaRepository<AnimalEntity, Long> {
+public interface AnimalJpaRepository extends JpaRepository<AnimalEntity, Long>,
+                                             JpaSpecificationExecutor<AnimalEntity> {
 
     List<AnimalEntity> findByEstadoAdopcion(EstadoAnimal estadoAdopcion);
 

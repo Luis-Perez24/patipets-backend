@@ -1,14 +1,18 @@
 package com.patipets.infrastructure.web.controller;
 
 import com.patipets.core.application.useCase.ConsultarAdminDashboardUseCase;
+import com.patipets.core.application.useCase.ConsultarCatalogoPublicoUseCase;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.application.useCase.GestionUsuarioUseCase;
+import com.patipets.core.domain.models.Animal;
 import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import com.patipets.core.domain.models.Usuario;
+import com.patipets.infrastructure.web.dto.AdminAnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.AdminDashboardStatsResponseDTO;
+import com.patipets.infrastructure.web.dto.AdminSolicitudAdopcionResponseDTO;
 import com.patipets.infrastructure.web.dto.AdminUsuarioResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.PaginatedResponseDTO;
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,15 +41,18 @@ public class AdminController {
     private final ConsultarAdminDashboardUseCase adminDashboardUseCase;
     private final GestionUsuarioUseCase gestionUsuarioUseCase;
     private final GestionAnimalUseCase gestionAnimalUseCase;
+    private final ConsultarCatalogoPublicoUseCase catalogoUseCase;
 
     public AdminController(GestionRefugioUseCase gestionRefugioUseCase,
                            ConsultarAdminDashboardUseCase adminDashboardUseCase,
                            GestionUsuarioUseCase gestionUsuarioUseCase,
-                           GestionAnimalUseCase gestionAnimalUseCase) {
+                           GestionAnimalUseCase gestionAnimalUseCase,
+                           ConsultarCatalogoPublicoUseCase catalogoUseCase) {
         this.gestionRefugioUseCase = gestionRefugioUseCase;
         this.adminDashboardUseCase = adminDashboardUseCase;
         this.gestionUsuarioUseCase = gestionUsuarioUseCase;
         this.gestionAnimalUseCase = gestionAnimalUseCase;
+        this.catalogoUseCase = catalogoUseCase;
     }
 
     @PostMapping(value = "/refugios", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -183,13 +191,84 @@ public class AdminController {
 
     @GetMapping("/solicitudes/pendientes")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponseDTO<List<SolicitudAdopcionResponseDTO>>> listarSolicitudesPendientes(
+    public ResponseEntity<ApiResponseDTO<List<AdminSolicitudAdopcionResponseDTO>>> listarSolicitudesPendientes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         List<SolicitudAdopcion> solicitudes = gestionAnimalUseCase.listarSolicitudesPendientes(page, size);
         var dto = solicitudes.stream()
-                .map(SolicitudAdopcionResponseDTO::fromDomain)
+                .map(this::enriquecer)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    @PutMapping("/solicitudes/{id}/aprobar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminSolicitudAdopcionResponseDTO>> aprobarSolicitud(@PathVariable Long id) {
+        try {
+            SolicitudAdopcion solicitud = gestionAnimalUseCase.aprobarSolicitud(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Solicitud aprobada", enriquecer(solicitud)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/solicitudes/{id}/rechazar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminSolicitudAdopcionResponseDTO>> rechazarSolicitud(@PathVariable Long id) {
+        try {
+            SolicitudAdopcion solicitud = gestionAnimalUseCase.rechazarSolicitud(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Solicitud rechazada", enriquecer(solicitud)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/animales")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<PaginatedResponseDTO<AdminAnimalResponseDTO>>> listarAnimales(
+            @RequestParam(required = false) String estado,
+            @RequestParam(name = "refugio_id", required = false) Long refugioId,
+            @RequestParam(required = false) String especie,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PaginatedResult<Animal> result = gestionAnimalUseCase.listarTodos(estado, refugioId, especie, busqueda, page, size);
+        List<AdminAnimalResponseDTO> dto = result.getItems().stream()
+                .map(a -> {
+                    Refugio ref = gestionRefugioUseCase.obtenerPorId(a.getRefugioId()).orElse(null);
+                    return AdminAnimalResponseDTO.fromDomain(a, ref);
+                })
+                .collect(Collectors.toList());
+        PaginatedResponseDTO<AdminAnimalResponseDTO> paginated = new PaginatedResponseDTO<>(
+                dto, result.getTotalPages(), result.getTotalElements(), result.getPage(), result.getSize());
+        return ResponseEntity.ok(ApiResponseDTO.ok(paginated));
+    }
+
+    @PutMapping("/animales/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<AdminAnimalResponseDTO>> actualizarEstadoAnimal(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        try {
+            String nuevoEstado = body.get("estado");
+            if (nuevoEstado == null || nuevoEstado.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponseDTO.error("El campo 'estado' es requerido"));
+            }
+            Animal actualizado = gestionAnimalUseCase.cambiarEstadoAnimal(id, nuevoEstado);
+            Refugio ref = gestionRefugioUseCase.obtenerPorId(actualizado.getRefugioId()).orElse(null);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Estado actualizado", AdminAnimalResponseDTO.fromDomain(actualizado, ref)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    private AdminSolicitudAdopcionResponseDTO enriquecer(SolicitudAdopcion solicitud) {
+        Animal animal = catalogoUseCase.obtenerPorId(solicitud.getAnimalId()).orElse(null);
+        Refugio refugio = gestionRefugioUseCase.obtenerPorId(solicitud.getRefugioId()).orElse(null);
+        return AdminSolicitudAdopcionResponseDTO.fromDomain(solicitud, animal, refugio);
     }
 }
