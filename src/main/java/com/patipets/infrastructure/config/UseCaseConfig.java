@@ -19,6 +19,7 @@ import com.patipets.core.application.services.GestionApadrinamientoService;
 import com.patipets.core.application.services.GestionNotificacionService;
 import com.patipets.core.application.services.GestionRefugioService;
 import com.patipets.core.application.services.GestionUsuarioService;
+import com.patipets.core.application.services.GeocodingService;
 import com.patipets.core.application.useCase.AuthUseCase;
 import com.patipets.core.application.useCase.ConsultarAdminDashboardUseCase;
 import com.patipets.core.application.useCase.ConsultarCatalogoPublicoUseCase;
@@ -136,12 +137,15 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionRefugioUseCase gestionRefugioUseCase(ImageStoragePort imageStoragePort, EventPublisherPort eventPublisher) {
+    public GestionRefugioUseCase gestionRefugioUseCase(ImageStoragePort imageStoragePort,
+                                                       EventPublisherPort eventPublisher,
+                                                       GeocodingService geocodingService) {
         return new GestionRefugioService(
                 new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
                 imageStoragePort,
                 new UsuarioRepositoryAdapter(usuarioJpaRepository),
-                eventPublisher);
+                eventPublisher,
+                geocodingService);
     }
 
     @Bean

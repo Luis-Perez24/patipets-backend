@@ -3,6 +3,8 @@ package com.patipets.infrastructure.web.controller;
 import com.patipets.core.application.useCase.ConsultarCatalogoPublicoUseCase;
 import com.patipets.core.application.useCase.ConsultarEstadisticasDashboardUseCase;
 import com.patipets.core.application.useCase.ConsultarMapaRefugiosUseCase;
+import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.Refugio;
 import com.patipets.infrastructure.web.dto.AnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.EstadisticaDashboardResponseDTO;
@@ -10,6 +12,9 @@ import com.patipets.infrastructure.web.dto.RefugioUbicacionDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -37,9 +42,11 @@ public class PublicController {
             @RequestParam(required = false) String tamano,
             @RequestParam(required = false) String region) {
 
-        var animales = catalogoUseCase.obtenerTodos(especie, raza, edadMin, edadMax, tamano, region);
+        List<Animal> animales = catalogoUseCase.obtenerTodos(especie, raza, edadMin, edadMax, tamano, region);
+        Map<Long, Refugio> refugiosPorId = cargarRefugios(animales);
         var dto = animales.stream()
-                .map(AnimalResponseDTO::fromDomain)
+                .map(a -> enriquecer(AnimalResponseDTO.fromDomain(a),
+                        refugiosPorId.get(a.getRefugioId())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -53,13 +60,7 @@ public class PublicController {
                         mapaUseCase.obtenerRefugiosAprobados().stream()
                                 .filter(r -> r.getId().equals(animal.getRefugioId()))
                                 .findFirst()
-                                .ifPresent(refugio -> {
-                                    dto.setRefugioNombre(refugio.getNombre());
-                                    dto.setRefugioTelefono(refugio.getNumeroContacto());
-                                    dto.setRefugioEmail(refugio.getEmail());
-                                    dto.setRefugioDireccion(refugio.getDireccion());
-                                    dto.setRefugioRegion(refugio.getRegion());
-                                });
+                                .ifPresent(refugio -> aplicarDatosRefugio(dto, refugio));
                     }
                     return ResponseEntity.ok(ApiResponseDTO.ok(dto));
                 })
@@ -79,5 +80,33 @@ public class PublicController {
     public ResponseEntity<ApiResponseDTO<EstadisticaDashboardResponseDTO>> obtenerEstadisticas() {
         var stats = dashboardUseCase.obtenerEstadisticas();
         return ResponseEntity.ok(ApiResponseDTO.ok(EstadisticaDashboardResponseDTO.fromDomain(stats)));
+    }
+
+    private Map<Long, Refugio> cargarRefugios(List<Animal> animales) {
+        Set<Long> refugioIds = animales.stream()
+                .map(Animal::getRefugioId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (refugioIds.isEmpty()) {
+            return Map.of();
+        }
+        return mapaUseCase.obtenerRefugiosAprobados().stream()
+                .filter(r -> refugioIds.contains(r.getId()))
+                .collect(Collectors.toMap(Refugio::getId, Function.identity()));
+    }
+
+    private AnimalResponseDTO enriquecer(AnimalResponseDTO dto, Refugio refugio) {
+        if (refugio != null) {
+            aplicarDatosRefugio(dto, refugio);
+        }
+        return dto;
+    }
+
+    private void aplicarDatosRefugio(AnimalResponseDTO dto, Refugio refugio) {
+        dto.setRefugioNombre(refugio.getNombre());
+        dto.setRefugioTelefono(refugio.getNumeroContacto());
+        dto.setRefugioEmail(refugio.getEmail());
+        dto.setRefugioDireccion(refugio.getDireccion());
+        dto.setRefugioRegion(refugio.getRegion());
     }
 }

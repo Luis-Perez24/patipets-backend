@@ -23,13 +23,16 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     private final ImageStoragePort imageStoragePort;
     private final UsuarioRepositoryPort usuarioRepository;
     private final EventPublisherPort eventPublisher;
+    private final GeocodingService geocodingService;
 
     public GestionRefugioService(RefugioRepositoryPort refugioRepository, ImageStoragePort imageStoragePort,
-                                  UsuarioRepositoryPort usuarioRepository, EventPublisherPort eventPublisher) {
+                                  UsuarioRepositoryPort usuarioRepository, EventPublisherPort eventPublisher,
+                                  GeocodingService geocodingService) {
         this.refugioRepository = refugioRepository;
         this.imageStoragePort = imageStoragePort;
         this.usuarioRepository = usuarioRepository;
         this.eventPublisher = eventPublisher;
+        this.geocodingService = geocodingService;
     }
 
     @Override
@@ -38,9 +41,20 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                               String email, String numeroContacto, Long usuarioId,
                               MultipartFile foto) throws IOException {
         String fotoUrl = (foto != null && !foto.isEmpty()) ? imageStoragePort.upload(foto) : null;
+
+        Double finalLatitud = latitud;
+        Double finalLongitud = longitud;
+        if (finalLatitud == null || finalLongitud == null) {
+            double[] resolved = geocodingService.geocode(direccion, comuna, region)
+                    .orElse(new double[]{0.0, 0.0});
+            finalLatitud = resolved[0];
+            finalLongitud = resolved[1];
+        }
+
         Refugio nuevo = new Refugio(
                 null, nombre, descripcion, direccion, region, comuna,
-                latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE, fotoUrl,
+                finalLatitud, finalLongitud, capacidad, email, numeroContacto,
+                EstadoRefugio.PENDIENTE, fotoUrl,
                 usuarioId, null, LocalDateTime.now()
         );
         Refugio guardado = refugioRepository.save(nuevo);

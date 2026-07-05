@@ -23,12 +23,10 @@ public class RefugioSolicitudRequestDTO {
     @NotBlank(message = "es obligatorio")
     private String comuna;
 
-    @NotNull(message = "es obligatorio")
     @DecimalMin(value = "-90", message = "debe estar entre -90 y 90")
     @DecimalMax(value = "90", message = "debe estar entre -90 y 90")
     private Double latitud;
 
-    @NotNull(message = "es obligatorio")
     @DecimalMin(value = "-180", message = "debe estar entre -180 y 180")
     @DecimalMax(value = "180", message = "debe estar entre -180 y 180")
     private Double longitud;
