@@ -3,11 +3,14 @@ package com.patipets.infrastructure.web.controller;
 import com.patipets.core.application.useCase.ConsultarCatalogoPublicoUseCase;
 import com.patipets.core.application.useCase.ConsultarEstadisticasDashboardUseCase;
 import com.patipets.core.application.useCase.ConsultarMapaRefugiosUseCase;
+import com.patipets.core.application.useCase.GestionRefugioUseCase;
+import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.models.Animal;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.infrastructure.web.dto.AnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.EstadisticaDashboardResponseDTO;
+import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioUbicacionDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,13 +27,16 @@ public class PublicController {
     private final ConsultarCatalogoPublicoUseCase catalogoUseCase;
     private final ConsultarMapaRefugiosUseCase mapaUseCase;
     private final ConsultarEstadisticasDashboardUseCase dashboardUseCase;
+    private final GestionRefugioUseCase gestionRefugioUseCase;
 
     public PublicController(ConsultarCatalogoPublicoUseCase catalogoUseCase,
                              ConsultarMapaRefugiosUseCase mapaUseCase,
-                             ConsultarEstadisticasDashboardUseCase dashboardUseCase) {
+                             ConsultarEstadisticasDashboardUseCase dashboardUseCase,
+                             GestionRefugioUseCase gestionRefugioUseCase) {
         this.catalogoUseCase = catalogoUseCase;
         this.mapaUseCase = mapaUseCase;
         this.dashboardUseCase = dashboardUseCase;
+        this.gestionRefugioUseCase = gestionRefugioUseCase;
     }
 
     @GetMapping("/animales")
@@ -74,6 +80,14 @@ public class PublicController {
                 .map(RefugioUbicacionDTO::fromDomain)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    @GetMapping("/refugios/{id}")
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> obtenerRefugio(@PathVariable Long id) {
+        return gestionRefugioUseCase.obtenerPorId(id)
+                .filter(refugio -> refugio.getEstado() == EstadoRefugio.APROBADO)
+                .map(refugio -> ResponseEntity.ok(ApiResponseDTO.ok(RefugioResponseDTO.fromDomain(refugio))))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/dashboard/estadisticas")
