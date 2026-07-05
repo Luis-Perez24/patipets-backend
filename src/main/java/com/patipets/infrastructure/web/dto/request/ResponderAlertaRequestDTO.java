@@ -7,8 +7,8 @@ public class ResponderAlertaRequestDTO {
 
     @NotBlank(message = "es obligatorio")
     @Pattern(
-        regexp = "^(PASEO|LIMPIEZA|TRANSPORTE|ATENCION|OTRO)$",
-        message = "debe ser uno de: PASEO, LIMPIEZA, TRANSPORTE, ATENCION, OTRO"
+        regexp = "^(PASEOS|LIMPIEZAS|TRANSPORTES|ATENCIONES|OTROS)$",
+        message = "debe ser uno de: PASEOS, LIMPIEZAS, TRANSPORTES, ATENCIONES, OTROS"
     )
     private String tipoAyuda;
 
