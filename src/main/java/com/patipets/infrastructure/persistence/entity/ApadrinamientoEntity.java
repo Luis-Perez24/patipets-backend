@@ -23,6 +23,9 @@ public class ApadrinamientoEntity {
     @Column(name = "tipo_apoyo", nullable = false)
     private String tipoApoyo;
 
+    @Column(columnDefinition = "TEXT")
+    private String compromiso;
+
     @Column(name = "fecha_inicio")
     private LocalDateTime fechaInicio;
 
@@ -41,6 +44,8 @@ public class ApadrinamientoEntity {
     public void setRefugioId(Long refugioId) { this.refugioId = refugioId; }
     public String getTipoApoyo() { return tipoApoyo; }
     public void setTipoApoyo(String tipoApoyo) { this.tipoApoyo = tipoApoyo; }
+    public String getCompromiso() { return compromiso; }
+    public void setCompromiso(String compromiso) { this.compromiso = compromiso; }
     public LocalDateTime getFechaInicio() { return fechaInicio; }
     public void setFechaInicio(LocalDateTime fechaInicio) { this.fechaInicio = fechaInicio; }
     public boolean isActivo() { return activo; }

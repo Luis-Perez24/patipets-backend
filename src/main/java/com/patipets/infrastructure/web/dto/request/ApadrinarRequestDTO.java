@@ -16,10 +16,15 @@ public class ApadrinarRequestDTO {
     )
     private String tipoApoyo;
 
+    @NotBlank(message = "es obligatorio")
+    private String compromiso;
+
     public ApadrinarRequestDTO() {}
 
     public Long getAnimalId() { return animalId; }
     public void setAnimalId(Long animalId) { this.animalId = animalId; }
     public String getTipoApoyo() { return tipoApoyo; }
     public void setTipoApoyo(String tipoApoyo) { this.tipoApoyo = tipoApoyo; }
+    public String getCompromiso() { return compromiso; }
+    public void setCompromiso(String compromiso) { this.compromiso = compromiso; }
 }

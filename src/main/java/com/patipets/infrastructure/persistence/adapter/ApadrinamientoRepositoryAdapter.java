@@ -56,6 +56,7 @@ public class ApadrinamientoRepositoryAdapter implements ApadrinamientoRepository
         return new Apadrinamiento(
                 entity.getId(), entity.getPadrinoId(), entity.getAnimalId(),
                 entity.getRefugioId(), TipoApoyo.valueOf(entity.getTipoApoyo()),
+                entity.getCompromiso(),
                 entity.getFechaInicio(), entity.isActivo()
         );
     }
@@ -67,6 +68,7 @@ public class ApadrinamientoRepositoryAdapter implements ApadrinamientoRepository
         entity.setAnimalId(apadrinamiento.getAnimalId());
         entity.setRefugioId(apadrinamiento.getRefugioId());
         entity.setTipoApoyo(apadrinamiento.getTipoApoyo().name());
+        entity.setCompromiso(apadrinamiento.getCompromiso());
         entity.setFechaInicio(apadrinamiento.getFechaInicio());
         entity.setActivo(apadrinamiento.isActivo());
         return entity;

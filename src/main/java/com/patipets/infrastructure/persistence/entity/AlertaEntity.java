@@ -1,6 +1,7 @@
 package com.patipets.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,6 +33,14 @@ public class AlertaEntity {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "tipo_ayuda")
+    private String tipoAyuda;
+
+    private LocalDate fecha;
+
+    @Column(name = "perfil_requerido")
+    private String perfilRequerido;
+
     public AlertaEntity() {}
 
     public Long getId() { return id; }
@@ -50,4 +59,10 @@ public class AlertaEntity {
     public void setActiva(boolean activa) { this.activa = activa; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getTipoAyuda() { return tipoAyuda; }
+    public void setTipoAyuda(String tipoAyuda) { this.tipoAyuda = tipoAyuda; }
+    public LocalDate getFecha() { return fecha; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+    public String getPerfilRequerido() { return perfilRequerido; }
+    public void setPerfilRequerido(String perfilRequerido) { this.perfilRequerido = perfilRequerido; }
 }

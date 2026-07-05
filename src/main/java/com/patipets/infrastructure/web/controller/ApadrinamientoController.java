@@ -1,7 +1,11 @@
 package com.patipets.infrastructure.web.controller;
 
+import com.patipets.core.application.ports.output.AnimalRepositoryPort;
+import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.application.useCase.GestionApadrinamientoUseCase;
 import com.patipets.core.domain.models.Apadrinamiento;
+import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.web.dto.ApadrinamientoResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
@@ -20,9 +24,15 @@ import java.util.stream.Collectors;
 public class ApadrinamientoController {
 
     private final GestionApadrinamientoUseCase apadrinamientoUseCase;
+    private final AnimalRepositoryPort animalRepository;
+    private final RefugioRepositoryPort refugioRepository;
 
-    public ApadrinamientoController(GestionApadrinamientoUseCase apadrinamientoUseCase) {
+    public ApadrinamientoController(GestionApadrinamientoUseCase apadrinamientoUseCase,
+                                    AnimalRepositoryPort animalRepository,
+                                    RefugioRepositoryPort refugioRepository) {
         this.apadrinamientoUseCase = apadrinamientoUseCase;
+        this.animalRepository = animalRepository;
+        this.refugioRepository = refugioRepository;
     }
 
     @PostMapping
@@ -33,10 +43,10 @@ public class ApadrinamientoController {
         try {
             Usuario usuario = (Usuario) authentication.getPrincipal();
             Apadrinamiento apadrinamiento = apadrinamientoUseCase.apadrinar(
-                    usuario.getId(), request.getAnimalId(), request.getTipoApoyo());
+                    usuario.getId(), request.getAnimalId(), request.getTipoApoyo(), request.getCompromiso());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Apadrinamiento registrado",
-                            ApadrinamientoResponseDTO.fromDomain(apadrinamiento)));
+                            enriquecer(ApadrinamientoResponseDTO.fromDomain(apadrinamiento))));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
@@ -50,7 +60,7 @@ public class ApadrinamientoController {
         Usuario usuario = (Usuario) authentication.getPrincipal();
         List<Apadrinamiento> lista = apadrinamientoUseCase.listarPorPadrino(usuario.getId());
         var dto = lista.stream()
-                .map(ApadrinamientoResponseDTO::fromDomain)
+                .map(a -> enriquecer(ApadrinamientoResponseDTO.fromDomain(a)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -61,7 +71,7 @@ public class ApadrinamientoController {
             @PathVariable Long animalId) {
         List<Apadrinamiento> lista = apadrinamientoUseCase.listarPorAnimal(animalId);
         var dto = lista.stream()
-                .map(ApadrinamientoResponseDTO::fromDomain)
+                .map(a -> enriquecer(ApadrinamientoResponseDTO.fromDomain(a)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -72,7 +82,7 @@ public class ApadrinamientoController {
             @PathVariable Long refugioId) {
         List<Apadrinamiento> lista = apadrinamientoUseCase.listarPorRefugio(refugioId);
         var dto = lista.stream()
-                .map(ApadrinamientoResponseDTO::fromDomain)
+                .map(a -> enriquecer(ApadrinamientoResponseDTO.fromDomain(a)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -86,10 +96,18 @@ public class ApadrinamientoController {
             Usuario usuario = (Usuario) authentication.getPrincipal();
             Apadrinamiento apadrinamiento = apadrinamientoUseCase.cancelar(id, usuario.getId());
             return ResponseEntity.ok(ApiResponseDTO.ok("Apadrinamiento cancelado",
-                    ApadrinamientoResponseDTO.fromDomain(apadrinamiento)));
+                    enriquecer(ApadrinamientoResponseDTO.fromDomain(apadrinamiento))));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
         }
+    }
+
+    private ApadrinamientoResponseDTO enriquecer(ApadrinamientoResponseDTO dto) {
+        animalRepository.findById(dto.getAnimalId())
+                .ifPresent(a -> dto.setAnimalNombre(a.getNombre()));
+        refugioRepository.findById(dto.getRefugioId())
+                .ifPresent(r -> dto.setRefugioNombre(r.getNombre()));
+        return dto;
     }
 }

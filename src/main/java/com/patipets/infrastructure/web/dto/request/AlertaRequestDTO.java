@@ -16,6 +16,12 @@ public class AlertaRequestDTO {
     @NotNull(message = "es obligatorio")
     private Long refugioId;
 
+    private String tipoAyuda;
+
+    private String fecha;
+
+    private String perfilRequerido;
+
     public AlertaRequestDTO() {}
 
     public String getTitulo() { return titulo; }
@@ -26,4 +32,10 @@ public class AlertaRequestDTO {
     public void setNivelUrgencia(String nivelUrgencia) { this.nivelUrgencia = nivelUrgencia; }
     public Long getRefugioId() { return refugioId; }
     public void setRefugioId(Long refugioId) { this.refugioId = refugioId; }
+    public String getTipoAyuda() { return tipoAyuda; }
+    public void setTipoAyuda(String tipoAyuda) { this.tipoAyuda = tipoAyuda; }
+    public String getFecha() { return fecha; }
+    public void setFecha(String fecha) { this.fecha = fecha; }
+    public String getPerfilRequerido() { return perfilRequerido; }
+    public void setPerfilRequerido(String perfilRequerido) { this.perfilRequerido = perfilRequerido; }
 }

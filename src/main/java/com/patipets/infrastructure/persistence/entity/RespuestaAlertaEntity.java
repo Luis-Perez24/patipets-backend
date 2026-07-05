@@ -23,6 +23,9 @@ public class RespuestaAlertaEntity {
     @Column(columnDefinition = "TEXT")
     private String mensaje;
 
+    @Column(columnDefinition = "TEXT")
+    private String disponibilidad;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -38,6 +41,8 @@ public class RespuestaAlertaEntity {
     public void setTipoAyuda(String tipoAyuda) { this.tipoAyuda = tipoAyuda; }
     public String getMensaje() { return mensaje; }
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+    public String getDisponibilidad() { return disponibilidad; }
+    public void setDisponibilidad(String disponibilidad) { this.disponibilidad = disponibilidad; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

@@ -14,10 +14,14 @@ public class ResponderAlertaRequestDTO {
 
     private String mensaje;
 
+    private String disponibilidad;
+
     public ResponderAlertaRequestDTO() {}
 
     public String getTipoAyuda() { return tipoAyuda; }
     public void setTipoAyuda(String tipoAyuda) { this.tipoAyuda = tipoAyuda; }
     public String getMensaje() { return mensaje; }
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+    public String getDisponibilidad() { return disponibilidad; }
+    public void setDisponibilidad(String disponibilidad) { this.disponibilidad = disponibilidad; }
 }

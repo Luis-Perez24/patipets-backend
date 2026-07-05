@@ -1,5 +1,8 @@
 package com.patipets.infrastructure.web.controller;
 
+import com.patipets.core.application.ports.output.AlertaRepositoryPort;
+import com.patipets.core.application.ports.output.RefugioRepositoryPort;
+import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.domain.models.Alerta;
 import com.patipets.core.domain.models.RespuestaAlerta;
@@ -25,10 +28,19 @@ public class AlertaController {
 
     private final GestionAlertaUseCase gestionAlertaUseCase;
     private final RefugioAccessGuard refugioAccessGuard;
+    private final RefugioRepositoryPort refugioRepository;
+    private final AlertaRepositoryPort alertaRepository;
+    private final UsuarioRepositoryPort usuarioRepository;
 
-    public AlertaController(GestionAlertaUseCase gestionAlertaUseCase, RefugioAccessGuard refugioAccessGuard) {
+    public AlertaController(GestionAlertaUseCase gestionAlertaUseCase, RefugioAccessGuard refugioAccessGuard,
+                            RefugioRepositoryPort refugioRepository,
+                            AlertaRepositoryPort alertaRepository,
+                            UsuarioRepositoryPort usuarioRepository) {
         this.gestionAlertaUseCase = gestionAlertaUseCase;
         this.refugioAccessGuard = refugioAccessGuard;
+        this.refugioRepository = refugioRepository;
+        this.alertaRepository = alertaRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @PostMapping
@@ -41,9 +53,10 @@ public class AlertaController {
             refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), request.getRefugioId());
             Alerta alerta = gestionAlertaUseCase.crear(
                     request.getTitulo(), request.getDescripcion(),
-                    request.getNivelUrgencia(), request.getRefugioId(), usuarioId);
+                    request.getNivelUrgencia(), request.getRefugioId(), usuarioId,
+                    request.getTipoAyuda(), request.getFecha(), request.getPerfilRequerido());
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponseDTO.ok("Alerta creada", AlertaResponseDTO.fromDomain(alerta)));
+                    .body(ApiResponseDTO.ok("Alerta creada", enriquecerAlerta(AlertaResponseDTO.fromDomain(alerta))));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
@@ -56,7 +69,7 @@ public class AlertaController {
             @PathVariable Long refugioId) {
         List<Alerta> alertas = gestionAlertaUseCase.listarPorRefugio(refugioId);
         var dto = alertas.stream()
-                .map(AlertaResponseDTO::fromDomain)
+                .map(a -> enriquecerAlerta(AlertaResponseDTO.fromDomain(a)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -68,7 +81,7 @@ public class AlertaController {
             @RequestParam(defaultValue = "20") int size) {
         List<Alerta> alertas = gestionAlertaUseCase.listarActivas(page, size);
         var dto = alertas.stream()
-                .map(AlertaResponseDTO::fromDomain)
+                .map(a -> enriquecerAlerta(AlertaResponseDTO.fromDomain(a)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -78,7 +91,7 @@ public class AlertaController {
     public ResponseEntity<ApiResponseDTO<AlertaResponseDTO>> marcarResuelta(@PathVariable Long id) {
         try {
             Alerta alerta = gestionAlertaUseCase.marcarResuelta(id);
-            return ResponseEntity.ok(ApiResponseDTO.ok("Alerta resuelta", AlertaResponseDTO.fromDomain(alerta)));
+            return ResponseEntity.ok(ApiResponseDTO.ok("Alerta resuelta", enriquecerAlerta(AlertaResponseDTO.fromDomain(alerta))));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
@@ -106,9 +119,10 @@ public class AlertaController {
         try {
             Usuario usuario = (Usuario) authentication.getPrincipal();
             RespuestaAlerta respuesta = gestionAlertaUseCase.responder(
-                    id, usuario.getId(), request.getTipoAyuda(), request.getMensaje());
+                    id, usuario.getId(), request.getTipoAyuda(), request.getMensaje(), request.getDisponibilidad());
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponseDTO.ok("Respuesta registrada", RespuestaAlertaResponseDTO.fromDomain(respuesta)));
+                    .body(ApiResponseDTO.ok("Respuesta registrada",
+                            enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(respuesta))));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
@@ -122,7 +136,7 @@ public class AlertaController {
         Usuario usuario = (Usuario) authentication.getPrincipal();
         List<RespuestaAlerta> respuestas = gestionAlertaUseCase.listarRespuestasPorUsuario(usuario.getId());
         var dto = respuestas.stream()
-                .map(RespuestaAlertaResponseDTO::fromDomain)
+                .map(r -> enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(r)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
@@ -133,8 +147,22 @@ public class AlertaController {
             @PathVariable Long id) {
         List<RespuestaAlerta> respuestas = gestionAlertaUseCase.listarRespuestasPorAlerta(id);
         var dto = respuestas.stream()
-                .map(RespuestaAlertaResponseDTO::fromDomain)
+                .map(r -> enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(r)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    private AlertaResponseDTO enriquecerAlerta(AlertaResponseDTO dto) {
+        refugioRepository.findById(dto.getRefugioId())
+                .ifPresent(r -> dto.setRefugioNombre(r.getNombre()));
+        return dto;
+    }
+
+    private RespuestaAlertaResponseDTO enriquecerRespuesta(RespuestaAlertaResponseDTO dto) {
+        alertaRepository.findById(dto.getAlertaId())
+                .ifPresent(a -> dto.setAlertaTitulo(a.getTitulo()));
+        usuarioRepository.findById(dto.getUsuarioId())
+                .ifPresent(u -> dto.setUsuarioNombre(u.getNombre()));
+        return dto;
     }
 }

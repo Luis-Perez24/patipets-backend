@@ -9,6 +9,7 @@ import com.patipets.core.domain.enums.NivelUrgencia;
 import com.patipets.core.domain.enums.TipoAyudaVoluntariado;
 import com.patipets.core.domain.models.Alerta;
 import com.patipets.core.domain.models.RespuestaAlerta;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,6 +30,13 @@ public class GestionAlertaService implements GestionAlertaUseCase {
     @Override
     public Alerta crear(String titulo, String descripcion, String nivelUrgencia,
                         Long refugioId, Long creadoPor) {
+        return crear(titulo, descripcion, nivelUrgencia, refugioId, creadoPor, null, null, null);
+    }
+
+    @Override
+    public Alerta crear(String titulo, String descripcion, String nivelUrgencia,
+                        Long refugioId, Long creadoPor,
+                        String tipoAyuda, String fecha, String perfilRequerido) {
         if (titulo == null || titulo.isBlank()) {
             throw new IllegalArgumentException("El título es obligatorio");
         }
@@ -38,8 +46,21 @@ public class GestionAlertaService implements GestionAlertaUseCase {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Nivel de urgencia inválido: " + nivelUrgencia);
         }
+        TipoAyudaVoluntariado tipo = null;
+        if (tipoAyuda != null && !tipoAyuda.isBlank()) {
+            try {
+                tipo = TipoAyudaVoluntariado.valueOf(tipoAyuda.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Tipo de ayuda inválido: " + tipoAyuda);
+            }
+        }
+        LocalDate fechaParsed = null;
+        if (fecha != null && !fecha.isBlank()) {
+            fechaParsed = LocalDate.parse(fecha);
+        }
         Alerta alerta = new Alerta(
-                null, titulo, descripcion, nivel, refugioId, creadoPor, true, LocalDateTime.now()
+                null, titulo, descripcion, nivel, refugioId, creadoPor, true, LocalDateTime.now(),
+                tipo, fechaParsed, perfilRequerido
         );
         Alerta creada = alertaRepository.save(alerta);
         eventPublisher.publicar(new AlertaUrgentePublicadaEvent(
@@ -67,7 +88,8 @@ public class GestionAlertaService implements GestionAlertaUseCase {
         }
         Alerta resuelta = new Alerta(
                 id, alerta.getTitulo(), alerta.getDescripcion(), alerta.getNivelUrgencia(),
-                alerta.getRefugioId(), alerta.getCreadoPor(), false, alerta.getCreatedAt()
+                alerta.getRefugioId(), alerta.getCreadoPor(), false, alerta.getCreatedAt(),
+                alerta.getTipoAyuda(), alerta.getFecha(), alerta.getPerfilRequerido()
         );
         return alertaRepository.save(resuelta);
     }
@@ -82,6 +104,11 @@ public class GestionAlertaService implements GestionAlertaUseCase {
 
     @Override
     public RespuestaAlerta responder(Long alertaId, Long usuarioId, String tipoAyuda, String mensaje) {
+        return responder(alertaId, usuarioId, tipoAyuda, mensaje, null);
+    }
+
+    @Override
+    public RespuestaAlerta responder(Long alertaId, Long usuarioId, String tipoAyuda, String mensaje, String disponibilidad) {
         Alerta alerta = alertaRepository.findById(alertaId)
                 .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + alertaId));
         if (!alerta.isActiva()) {
@@ -97,7 +124,7 @@ public class GestionAlertaService implements GestionAlertaUseCase {
             throw new IllegalArgumentException("Tipo de ayuda inválido: " + tipoAyuda);
         }
         RespuestaAlerta respuesta = new RespuestaAlerta(
-                null, alertaId, usuarioId, tipo, mensaje, LocalDateTime.now()
+                null, alertaId, usuarioId, tipo, mensaje, disponibilidad, LocalDateTime.now()
         );
         return respuestaRepository.save(respuesta);
     }

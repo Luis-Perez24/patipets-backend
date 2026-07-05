@@ -1,9 +1,13 @@
 package com.patipets.infrastructure.config;
 
+import com.patipets.core.application.ports.output.AlertaRepositoryPort;
+import com.patipets.core.application.ports.output.AnimalRepositoryPort;
 import com.patipets.core.application.ports.output.EmailSenderPort;
 import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.PasswordEncoderPort;
+import com.patipets.core.application.ports.output.RefugioRepositoryPort;
+import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.services.AuthService;
 import com.patipets.core.application.services.ConsultarAdminDashboardService;
 import com.patipets.core.application.services.ConsultarCatalogoPublicoService;
@@ -78,6 +82,26 @@ public class UseCaseConfig {
         this.notificacionJpaRepository = notificacionJpaRepository;
         this.respuestaAlertaJpaRepository = respuestaAlertaJpaRepository;
         this.apadrinamientoJpaRepository = apadrinamientoJpaRepository;
+    }
+
+    @Bean
+    public AnimalRepositoryPort animalRepositoryPort() {
+        return new AnimalRepositoryAdapter(animalJpaRepository);
+    }
+
+    @Bean
+    public RefugioRepositoryPort refugioRepositoryPort() {
+        return new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository);
+    }
+
+    @Bean
+    public AlertaRepositoryPort alertaRepositoryPort() {
+        return new AlertaRepositoryAdapter(alertaJpaRepository);
+    }
+
+    @Bean
+    public UsuarioRepositoryPort usuarioRepositoryPort() {
+        return new UsuarioRepositoryAdapter(usuarioJpaRepository);
     }
 
     @Bean

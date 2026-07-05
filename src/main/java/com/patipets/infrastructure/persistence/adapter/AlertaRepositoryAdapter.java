@@ -2,6 +2,7 @@ package com.patipets.infrastructure.persistence.adapter;
 
 import com.patipets.core.application.ports.output.AlertaRepositoryPort;
 import com.patipets.core.domain.enums.NivelUrgencia;
+import com.patipets.core.domain.enums.TipoAyudaVoluntariado;
 import com.patipets.core.domain.models.Alerta;
 import com.patipets.infrastructure.persistence.entity.AlertaEntity;
 import com.patipets.infrastructure.persistence.repository.AlertaJpaRepository;
@@ -50,11 +51,16 @@ public class AlertaRepositoryAdapter implements AlertaRepositoryPort {
     }
 
     private Alerta toDomain(AlertaEntity entity) {
+        TipoAyudaVoluntariado tipo = null;
+        if (entity.getTipoAyuda() != null) {
+            tipo = TipoAyudaVoluntariado.valueOf(entity.getTipoAyuda());
+        }
         return new Alerta(
                 entity.getId(), entity.getTitulo(), entity.getDescripcion(),
                 NivelUrgencia.valueOf(entity.getNivelUrgencia()),
                 entity.getRefugioId(), entity.getCreadoPor(),
-                entity.isActiva(), entity.getCreatedAt()
+                entity.isActiva(), entity.getCreatedAt(),
+                tipo, entity.getFecha(), entity.getPerfilRequerido()
         );
     }
 
@@ -68,6 +74,9 @@ public class AlertaRepositoryAdapter implements AlertaRepositoryPort {
         entity.setCreadoPor(alerta.getCreadoPor());
         entity.setActiva(alerta.isActiva());
         entity.setCreatedAt(alerta.getCreatedAt());
+        entity.setTipoAyuda(alerta.getTipoAyuda() != null ? alerta.getTipoAyuda().name() : null);
+        entity.setFecha(alerta.getFecha());
+        entity.setPerfilRequerido(alerta.getPerfilRequerido());
         return entity;
     }
 }

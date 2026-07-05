@@ -27,7 +27,7 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
     }
 
     @Override
-    public Apadrinamiento apadrinar(Long padrinoId, Long animalId, String tipoApoyo) {
+    public Apadrinamiento apadrinar(Long padrinoId, Long animalId, String tipoApoyo, String compromiso) {
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + animalId));
         if (animal.getEstadoAdopcion() != EstadoAnimal.DISPONIBLE) {
@@ -45,7 +45,7 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
             throw new IllegalArgumentException("Tipo de apoyo inválido: " + tipoApoyo);
         }
         Apadrinamiento apadrinamiento = new Apadrinamiento(
-                null, padrinoId, animalId, refugio.getId(), tipo, LocalDateTime.now(), true
+                null, padrinoId, animalId, refugio.getId(), tipo, compromiso, LocalDateTime.now(), true
         );
         return apadrinamientoRepository.save(apadrinamiento);
     }
@@ -63,6 +63,7 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
         Apadrinamiento cancelado = new Apadrinamiento(
                 id, apadrinamiento.getPadrinoId(), apadrinamiento.getAnimalId(),
                 apadrinamiento.getRefugioId(), apadrinamiento.getTipoApoyo(),
+                apadrinamiento.getCompromiso(),
                 apadrinamiento.getFechaInicio(), false
         );
         return apadrinamientoRepository.save(cancelado);

@@ -50,7 +50,7 @@ public class RespuestaAlertaRepositoryAdapter implements RespuestaAlertaReposito
         return new RespuestaAlerta(
                 entity.getId(), entity.getAlertaId(), entity.getUsuarioId(),
                 TipoAyudaVoluntariado.valueOf(entity.getTipoAyuda()),
-                entity.getMensaje(), entity.getCreatedAt()
+                entity.getMensaje(), entity.getDisponibilidad(), entity.getCreatedAt()
         );
     }
 
@@ -61,6 +61,7 @@ public class RespuestaAlertaRepositoryAdapter implements RespuestaAlertaReposito
         entity.setUsuarioId(respuesta.getUsuarioId());
         entity.setTipoAyuda(respuesta.getTipoAyuda().name());
         entity.setMensaje(respuesta.getMensaje());
+        entity.setDisponibilidad(respuesta.getDisponibilidad());
         entity.setCreatedAt(respuesta.getCreatedAt());
         return entity;
     }

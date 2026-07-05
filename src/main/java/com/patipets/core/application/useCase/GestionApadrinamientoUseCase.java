@@ -4,7 +4,7 @@ import com.patipets.core.domain.models.Apadrinamiento;
 import java.util.List;
 
 public interface GestionApadrinamientoUseCase {
-    Apadrinamiento apadrinar(Long padrinoId, Long animalId, String tipoApoyo);
+    Apadrinamiento apadrinar(Long padrinoId, Long animalId, String tipoApoyo, String compromiso);
     Apadrinamiento cancelar(Long id, Long usuarioId);
     List<Apadrinamiento> listarPorPadrino(Long padrinoId);
     List<Apadrinamiento> listarPorAnimal(Long animalId);
