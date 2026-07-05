@@ -138,6 +138,7 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
         return new Refugio(
                 entity.getId(),
                 entity.getNombre(),
+                entity.getDescripcion(),
                 entity.getDireccion(),
                 entity.getRegion(),
                 entity.getComuna(),
@@ -158,6 +159,7 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
         RefugioEntity entity = new RefugioEntity();
         entity.setId(refugio.getId());
         entity.setNombre(refugio.getNombre());
+        entity.setDescripcion(refugio.getDescripcion());
         entity.setDireccion(refugio.getDireccion());
         entity.setRegion(refugio.getRegion());
         entity.setComuna(refugio.getComuna());

@@ -8,6 +8,7 @@ public class RefugioUbicacionDTO {
 
     private Long id;
     private String nombre;
+    private String descripcion;
     private String direccion;
     private String region;
 
@@ -24,6 +25,7 @@ public class RefugioUbicacionDTO {
         RefugioUbicacionDTO dto = new RefugioUbicacionDTO();
         dto.id = refugio.getId();
         dto.nombre = refugio.getNombre();
+        dto.descripcion = refugio.getDescripcion();
         dto.direccion = refugio.getDireccion();
         dto.region = refugio.getRegion();
         dto.latitud = refugio.getLatitud();
@@ -36,6 +38,7 @@ public class RefugioUbicacionDTO {
 
     public Long getId() { return id; }
     public String getNombre() { return nombre; }
+    public String getDescripcion() { return descripcion; }
     public String getDireccion() { return direccion; }
     public String getRegion() { return region; }
     public Double getLatitud() { return latitud; }

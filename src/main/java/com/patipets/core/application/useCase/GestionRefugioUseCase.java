@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GestionRefugioUseCase {
-    Refugio solicitar(String nombre, String direccion, String region, String comuna,
+    Refugio solicitar(String nombre, String descripcion, String direccion, String region, String comuna,
                       Double latitud, Double longitud, Integer capacidad,
                       String email, String numeroContacto, Long usuarioId,
                       MultipartFile foto) throws IOException;

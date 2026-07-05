@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 public class Refugio {
     private final Long id;
     private final String nombre;
+    private final String descripcion;
     private final String direccion;
     private final String region;
     private final String comuna;
@@ -20,19 +21,20 @@ public class Refugio {
     private final String usuarioNombre;
     private final LocalDateTime fechaCreacion;
 
-    public Refugio(Long id, String nombre, String direccion, String region,
+    public Refugio(Long id, String nombre, String descripcion, String direccion, String region,
                    String comuna, Double latitud, Double longitud, Integer capacidad,
                    String email, String numeroContacto, EstadoRefugio estado, String foto) {
-        this(id, nombre, direccion, region, comuna, latitud, longitud, capacidad,
+        this(id, nombre, descripcion, direccion, region, comuna, latitud, longitud, capacidad,
              email, numeroContacto, estado, foto, null, null, null);
     }
 
-    public Refugio(Long id, String nombre, String direccion, String region,
+    public Refugio(Long id, String nombre, String descripcion, String direccion, String region,
                    String comuna, Double latitud, Double longitud, Integer capacidad,
                    String email, String numeroContacto, EstadoRefugio estado, String foto,
                    Long usuarioId, String usuarioNombre, LocalDateTime fechaCreacion) {
         this.id = id;
         this.nombre = nombre;
+        this.descripcion = descripcion;
         this.direccion = direccion;
         this.region = region;
         this.comuna = comuna;
@@ -50,6 +52,7 @@ public class Refugio {
 
     public Long getId() { return id; }
     public String getNombre() { return nombre; }
+    public String getDescripcion() { return descripcion; }
     public String getDireccion() { return direccion; }
     public String getRegion() { return region; }
     public String getComuna() { return comuna; }

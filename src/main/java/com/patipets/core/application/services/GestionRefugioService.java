@@ -33,13 +33,13 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     }
 
     @Override
-    public Refugio solicitar(String nombre, String direccion, String region, String comuna,
+    public Refugio solicitar(String nombre, String descripcion, String direccion, String region, String comuna,
                               Double latitud, Double longitud, Integer capacidad,
                               String email, String numeroContacto, Long usuarioId,
                               MultipartFile foto) throws IOException {
         String fotoUrl = (foto != null && !foto.isEmpty()) ? imageStoragePort.upload(foto) : null;
         Refugio nuevo = new Refugio(
-                null, nombre, direccion, region, comuna,
+                null, nombre, descripcion, direccion, region, comuna,
                 latitud, longitud, capacidad, email, numeroContacto, EstadoRefugio.PENDIENTE, fotoUrl,
                 usuarioId, null, LocalDateTime.now()
         );
@@ -56,7 +56,7 @@ public class GestionRefugioService implements GestionRefugioUseCase {
             throw new IllegalStateException("El refugio no está en estado PENDIENTE");
         }
         Refugio actualizado = new Refugio(
-                refugio.getId(), refugio.getNombre(), refugio.getDireccion(),
+                refugio.getId(), refugio.getNombre(), refugio.getDescripcion(), refugio.getDireccion(),
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
                 refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.APROBADO,
@@ -78,7 +78,7 @@ public class GestionRefugioService implements GestionRefugioUseCase {
             throw new IllegalStateException("El refugio no está en estado PENDIENTE");
         }
         Refugio actualizado = new Refugio(
-                refugio.getId(), refugio.getNombre(), refugio.getDireccion(),
+                refugio.getId(), refugio.getNombre(), refugio.getDescripcion(), refugio.getDireccion(),
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
                 refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.RECHAZADO,

@@ -8,6 +8,7 @@ public class RefugioResponseDTO {
 
     private Long id;
     private String nombre;
+    private String descripcion;
     private String direccion;
     private String region;
     private String comuna;
@@ -35,6 +36,7 @@ public class RefugioResponseDTO {
         RefugioResponseDTO dto = new RefugioResponseDTO();
         dto.id = refugio.getId();
         dto.nombre = refugio.getNombre();
+        dto.descripcion = refugio.getDescripcion();
         dto.direccion = refugio.getDireccion();
         dto.region = refugio.getRegion();
         dto.comuna = refugio.getComuna();
@@ -53,6 +55,7 @@ public class RefugioResponseDTO {
 
     public Long getId() { return id; }
     public String getNombre() { return nombre; }
+    public String getDescripcion() { return descripcion; }
     public String getDireccion() { return direccion; }
     public String getRegion() { return region; }
     public String getComuna() { return comuna; }

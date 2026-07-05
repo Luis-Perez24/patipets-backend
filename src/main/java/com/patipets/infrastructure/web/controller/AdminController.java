@@ -64,7 +64,7 @@ public class AdminController {
         try {
             Usuario usuarioActual = (Usuario) authentication.getPrincipal();
             Refugio refugio = gestionRefugioUseCase.solicitar(
-                    request.getNombre(), request.getDireccion(), request.getRegion(),
+                    request.getNombre(), request.getDescripcion(), request.getDireccion(), request.getRegion(),
                     request.getComuna(), request.getLatitud(), request.getLongitud(),
                     request.getCapacidad(), request.getEmail(), request.getNumeroContacto(),
                     usuarioActual.getId(), archivo);

@@ -12,6 +12,8 @@ public class RefugioSolicitudRequestDTO {
     @NotBlank(message = "es obligatorio")
     private String nombre;
 
+    private String descripcion;
+
     @NotBlank(message = "es obligatorio")
     private String direccion;
 
@@ -46,6 +48,8 @@ public class RefugioSolicitudRequestDTO {
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
     public String getRegion() { return region; }
