@@ -110,6 +110,29 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
         notificar(adoptanteId, TipoNotificacion.CAMBIO_ESTADO_SOLICITUD, titulo, mensaje, solicitudId);
     }
 
+    @Override
+    public void procesarCambioEstadoRefugio(Long refugioId, Long usuarioId, String nombreRefugio, String nuevoEstado) {
+        String titulo;
+        String mensaje;
+        switch (nuevoEstado) {
+            case "APROBADO" -> {
+                titulo = "Tu solicitud de refugio fue aprobada";
+                mensaje = String.format(
+                        "¡Felicidades! Tu refugio \"%s\" fue aprobado. Ya puedes administrarlo desde tu perfil (vuelve a iniciar sesión para ver los permisos actualizados).",
+                        nombreRefugio);
+            }
+            case "RECHAZADO" -> {
+                titulo = "Tu solicitud de refugio fue rechazada";
+                mensaje = String.format("Tu solicitud para registrar el refugio \"%s\" fue rechazada.", nombreRefugio);
+            }
+            default -> {
+                titulo = "Actualización de tu solicitud de refugio";
+                mensaje = String.format("Tu solicitud de refugio \"%s\" cambió a estado: %s", nombreRefugio, nuevoEstado);
+            }
+        }
+        notificar(usuarioId, TipoNotificacion.CAMBIO_ESTADO_REFUGIO, titulo, mensaje, refugioId);
+    }
+
     private void notificar(Long usuarioId, TipoNotificacion tipo, String titulo, String mensaje, Long entidadRelacionadaId) {
         Notificacion notificacion = new Notificacion(
                 null, usuarioId, tipo, titulo, mensaje, entidadRelacionadaId, false, LocalDateTime.now()
