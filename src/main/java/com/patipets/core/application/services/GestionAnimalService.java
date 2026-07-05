@@ -14,6 +14,7 @@ import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.enums.NivelActividad;
 import com.patipets.core.domain.enums.TipoVivienda;
 import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import org.springframework.web.multipart.MultipartFile;
@@ -144,8 +145,29 @@ public class GestionAnimalService implements GestionAnimalUseCase {
     }
 
     @Override
+    public Animal cambiarEstadoAnimal(Long id, String nuevoEstado) {
+        Animal existente = animalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
+        EstadoAnimal estado = EstadoAnimal.valueOf(nuevoEstado.toUpperCase());
+        Animal actualizado = new Animal(
+                existente.getId(), existente.getNombre(), existente.getEspecie(),
+                existente.getRaza(), existente.getEdad(), existente.getTamano(),
+                existente.getPersonalidad(), existente.getEstadoSalud(),
+                existente.getHistoria(), estado, existente.getRefugioId(),
+                null, null, existente.getFotos(), existente.getFechaRegistro()
+        );
+        return animalRepository.save(actualizado);
+    }
+
+    @Override
     public List<Animal> listarPorRefugio(Long refugioId) {
         return animalRepository.findByRefugioId(refugioId);
+    }
+
+    @Override
+    public PaginatedResult<Animal> listarTodos(String estado, Long refugioId, String especie,
+                                                String busqueda, int page, int size) {
+        return animalRepository.findAll(estado, refugioId, especie, busqueda, page, size);
     }
 
     @Override

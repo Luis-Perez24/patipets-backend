@@ -1,6 +1,7 @@
 package com.patipets.core.application.useCase;
 
 import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -15,7 +16,9 @@ public interface GestionAnimalUseCase {
                             String estadoSalud, String historia, String estadoAdopcion,
                             List<String> fotosAMantener, List<MultipartFile> archivosNuevos) throws IOException;
     void eliminarAnimal(Long id, Long refugioId);
+    Animal cambiarEstadoAnimal(Long id, String nuevoEstado);
     List<Animal> listarPorRefugio(Long refugioId);
+    PaginatedResult<Animal> listarTodos(String estado, Long refugioId, String especie, String busqueda, int page, int size);
     SolicitudAdopcion solicitar(Long animalId, Long adoptanteId, String nombreCompleto,
                                 String numeroContacto, String direccion, String nivelActividad,
                                 Integer horasSolo, String cuidadoVacaciones, String tipoVivienda,
