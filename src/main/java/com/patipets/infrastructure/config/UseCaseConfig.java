@@ -158,6 +158,6 @@ public class UseCaseConfig {
         return new GestionApadrinamientoService(
                 new ApadrinamientoRepositoryAdapter(apadrinamientoJpaRepository),
                 new AnimalRepositoryAdapter(animalJpaRepository),
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository));
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository));
     }
 }
