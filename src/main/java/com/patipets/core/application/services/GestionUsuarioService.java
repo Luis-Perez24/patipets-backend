@@ -3,8 +3,8 @@ package com.patipets.core.application.services;
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.GestionUsuarioUseCase;
 import com.patipets.core.domain.enums.Rol;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Usuario;
-import java.util.List;
 
 public class GestionUsuarioService implements GestionUsuarioUseCase {
 
@@ -15,8 +15,8 @@ public class GestionUsuarioService implements GestionUsuarioUseCase {
     }
 
     @Override
-    public List<Usuario> listar(String rol, Boolean activo, String fechaDesde,
-                                 String fechaHasta, int page, int size) {
+    public PaginatedResult<Usuario> listar(String rol, Boolean activo, String fechaDesde,
+                                            String fechaHasta, int page, int size) {
         Rol rolEnum = rol != null ? Rol.valueOf(rol.toUpperCase()) : null;
         return usuarioRepository.findAll(rolEnum, activo, fechaDesde, fechaHasta, page, size);
     }

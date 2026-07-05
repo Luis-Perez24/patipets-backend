@@ -4,12 +4,14 @@ import com.patipets.core.application.useCase.ConsultarAdminDashboardUseCase;
 import com.patipets.core.application.useCase.GestionAnimalUseCase;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.application.useCase.GestionUsuarioUseCase;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.web.dto.AdminDashboardStatsResponseDTO;
 import com.patipets.infrastructure.web.dto.AdminUsuarioResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
+import com.patipets.infrastructure.web.dto.PaginatedResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.SolicitudAdopcionResponseDTO;
 import com.patipets.infrastructure.web.dto.request.RefugioSolicitudRequestDTO;
@@ -111,18 +113,20 @@ public class AdminController {
 
     @GetMapping("/usuarios")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponseDTO<List<AdminUsuarioResponseDTO>>> listarUsuarios(
+    public ResponseEntity<ApiResponseDTO<PaginatedResponseDTO<AdminUsuarioResponseDTO>>> listarUsuarios(
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) Boolean activo,
             @RequestParam(name = "fecha_desde", required = false) String fechaDesde,
             @RequestParam(name = "fecha_hasta", required = false) String fechaHasta,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        List<Usuario> usuarios = gestionUsuarioUseCase.listar(rol, activo, fechaDesde, fechaHasta, page, size);
-        var dto = usuarios.stream()
+        PaginatedResult<Usuario> result = gestionUsuarioUseCase.listar(rol, activo, fechaDesde, fechaHasta, page, size);
+        List<AdminUsuarioResponseDTO> dto = result.getItems().stream()
                 .map(AdminUsuarioResponseDTO::fromDomain)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+        PaginatedResponseDTO<AdminUsuarioResponseDTO> paginated = new PaginatedResponseDTO<>(
+                dto, result.getTotalPages(), result.getTotalElements(), result.getPage(), result.getSize());
+        return ResponseEntity.ok(ApiResponseDTO.ok(paginated));
     }
 
     @GetMapping("/usuarios/{id}")

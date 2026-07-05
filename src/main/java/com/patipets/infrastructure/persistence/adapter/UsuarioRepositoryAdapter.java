@@ -2,10 +2,12 @@ package com.patipets.infrastructure.persistence.adapter;
 
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.domain.enums.Rol;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.persistence.entity.UsuarioEntity;
 import com.patipets.infrastructure.persistence.repository.UsuarioJpaRepository;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -47,8 +49,8 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
-    public List<Usuario> findAll(Rol rol, Boolean activo, String fechaDesde,
-                                  String fechaHasta, int page, int size) {
+    public PaginatedResult<Usuario> findAll(Rol rol, Boolean activo, String fechaDesde,
+                                             String fechaHasta, int page, int size) {
         Specification<UsuarioEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (rol != null) {
@@ -67,10 +69,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        return jpaRepository.findAll(spec, PageRequest.of(page, size, Sort.by("fechaRegistro").descending()))
-                .stream()
+        Page<UsuarioEntity> pageResult = jpaRepository.findAll(spec, PageRequest.of(page, size, Sort.by("fechaRegistro").descending()));
+        List<Usuario> items = pageResult.getContent().stream()
                 .map(this::toDomain)
                 .toList();
+        return new PaginatedResult<>(items, pageResult.getTotalPages(), pageResult.getTotalElements(), pageResult.getNumber(), pageResult.getSize());
     }
 
     @Override
