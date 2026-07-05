@@ -37,24 +37,27 @@ deploy:
   script:
     - ssh -i ~/.ssh/deploy_key $VPS_USER@$VPS_HOST "
         set -e
-        echo '=== [1/4] Pull latest code ==='
+        echo '=== [1/5] Pull latest code ==='
         cd $DEPLOY_PATH
         git checkout develop
         git fetch --prune origin develop
         git reset --hard origin/develop
 
-        echo '=== [2/4] Export env vars ==='
+        echo '=== [2/5] Export env vars ==='
         set -a
         source /home/user11/app/.env
         set +a
 
-        echo '=== [3/4] Build and restart ==='
+        echo '=== [3/5] Stop existing containers ==='
         export COMPOSE_PROJECT_NAME=patipets
-        docker compose -f /home/user11/app/docker-compose.yml down 2>/dev/null || true
-        docker compose build $APP
-        docker compose up -d --remove-orphans $APP
+        cd $DEPLOY_PATH
+        docker compose -f $DEPLOY_PATH/docker-compose.yml down 2>/dev/null || true
 
-        echo '=== [4/4] Cleanup ==='
+        echo '=== [4/5] Build and restart ==='
+        docker compose -f $DEPLOY_PATH/docker-compose.yml build --no-cache $APP
+        docker compose -f $DEPLOY_PATH/docker-compose.yml up -d --remove-orphans
+
+        echo '=== [5/5] Cleanup ==='
         docker image prune -f
       "
     - echo "DEPLOY_SHA=$CI_COMMIT_SHORT_SHA" > deploy.env
