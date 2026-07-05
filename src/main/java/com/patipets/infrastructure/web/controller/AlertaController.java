@@ -99,8 +99,11 @@ public class AlertaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponseDTO<Void>> eliminarAlerta(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<Void>> eliminarAlerta(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestAttribute("usuarioId") Long usuarioId) {
         try {
             gestionAlertaUseCase.eliminar(id);
             return ResponseEntity.ok(ApiResponseDTO.ok("Alerta eliminada", null));
