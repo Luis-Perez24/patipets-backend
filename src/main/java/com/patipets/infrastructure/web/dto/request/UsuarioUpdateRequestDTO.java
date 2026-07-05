@@ -8,10 +8,8 @@ public class UsuarioUpdateRequestDTO {
     private String email;
     private String rol;
 
-    @NotBlank(message = "es obligatorio")
     private String numeroContacto;
 
-    @NotBlank(message = "es obligatorio")
     private String ubicacion;
 
     private String biografia;
