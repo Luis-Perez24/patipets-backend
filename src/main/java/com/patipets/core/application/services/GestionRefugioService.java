@@ -1,10 +1,15 @@
 package com.patipets.core.application.services;
 
+import com.patipets.core.application.events.SolicitudRefugioCambiadaEvent;
+import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
+import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.domain.enums.EstadoRefugio;
+import com.patipets.core.domain.enums.Rol;
 import com.patipets.core.domain.models.Refugio;
+import com.patipets.core.domain.models.Usuario;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -15,10 +20,15 @@ public class GestionRefugioService implements GestionRefugioUseCase {
 
     private final RefugioRepositoryPort refugioRepository;
     private final ImageStoragePort imageStoragePort;
+    private final UsuarioRepositoryPort usuarioRepository;
+    private final EventPublisherPort eventPublisher;
 
-    public GestionRefugioService(RefugioRepositoryPort refugioRepository, ImageStoragePort imageStoragePort) {
+    public GestionRefugioService(RefugioRepositoryPort refugioRepository, ImageStoragePort imageStoragePort,
+                                  UsuarioRepositoryPort usuarioRepository, EventPublisherPort eventPublisher) {
         this.refugioRepository = refugioRepository;
         this.imageStoragePort = imageStoragePort;
+        this.usuarioRepository = usuarioRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -52,7 +62,11 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getFoto(), refugio.getUsuarioId(), refugio.getUsuarioNombre(),
                 refugio.getFechaCreacion()
         );
-        return refugioRepository.save(actualizado);
+        Refugio guardado = refugioRepository.save(actualizado);
+        promoverAAdminRefugio(refugio.getUsuarioId());
+        eventPublisher.publicar(new SolicitudRefugioCambiadaEvent(
+                guardado.getId(), guardado.getUsuarioId(), guardado.getNombre(), guardado.getEstado().name()));
+        return guardado;
     }
 
     @Override
@@ -70,7 +84,27 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getFoto(), refugio.getUsuarioId(), refugio.getUsuarioNombre(),
                 refugio.getFechaCreacion()
         );
-        return refugioRepository.save(actualizado);
+        Refugio guardado = refugioRepository.save(actualizado);
+        eventPublisher.publicar(new SolicitudRefugioCambiadaEvent(
+                guardado.getId(), guardado.getUsuarioId(), guardado.getNombre(), guardado.getEstado().name()));
+        return guardado;
+    }
+
+    private void promoverAAdminRefugio(Long usuarioId) {
+        if (usuarioId == null) {
+            return;
+        }
+        usuarioRepository.findById(usuarioId).ifPresent(usuario -> {
+            if (usuario.getRol() == Rol.CIUDADANO) {
+                Usuario promovido = new Usuario(
+                        usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getPassword(),
+                        Rol.REFUGIO, usuario.getFotoPerfil(), usuario.getNumeroContacto(), usuario.getUbicacion(),
+                        usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
+                        usuario.isActivo(), usuario.getFechaRegistro()
+                );
+                usuarioRepository.save(promovido);
+            }
+        });
     }
 
     @Override
