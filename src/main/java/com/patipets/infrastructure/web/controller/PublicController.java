@@ -47,7 +47,22 @@ public class PublicController {
     @GetMapping("/animales/{id}")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> obtenerAnimal(@PathVariable Long id) {
         return catalogoUseCase.obtenerPorId(id)
-                .map(animal -> ResponseEntity.ok(ApiResponseDTO.ok(AnimalResponseDTO.fromDomain(animal))))
+                .map(animal -> {
+                    var dto = AnimalResponseDTO.fromDomain(animal);
+                    if (animal.getRefugioId() != null) {
+                        mapaUseCase.obtenerRefugiosAprobados().stream()
+                                .filter(r -> r.getId().equals(animal.getRefugioId()))
+                                .findFirst()
+                                .ifPresent(refugio -> {
+                                    dto.setRefugioNombre(refugio.getNombre());
+                                    dto.setRefugioTelefono(refugio.getNumeroContacto());
+                                    dto.setRefugioEmail(refugio.getEmail());
+                                    dto.setRefugioDireccion(refugio.getDireccion());
+                                    dto.setRefugioRegion(refugio.getRegion());
+                                });
+                    }
+                    return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

@@ -13,6 +13,9 @@ public class RefugioUbicacionDTO {
     private Double latitud;
     private Double longitud;
 
+    private String telefono;
+    private String email;
+
     public static RefugioUbicacionDTO fromDomain(Refugio refugio) {
         RefugioUbicacionDTO dto = new RefugioUbicacionDTO();
         dto.id = refugio.getId();
@@ -21,6 +24,8 @@ public class RefugioUbicacionDTO {
         dto.region = refugio.getRegion();
         dto.latitud = refugio.getLatitud();
         dto.longitud = refugio.getLongitud();
+        dto.telefono = refugio.getNumeroContacto();
+        dto.email = refugio.getEmail();
         return dto;
     }
 
@@ -30,4 +35,6 @@ public class RefugioUbicacionDTO {
     public String getRegion() { return region; }
     public Double getLatitud() { return latitud; }
     public Double getLongitud() { return longitud; }
+    public String getTelefono() { return telefono; }
+    public String getEmail() { return email; }
 }

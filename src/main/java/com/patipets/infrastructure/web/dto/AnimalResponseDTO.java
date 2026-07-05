@@ -27,6 +27,21 @@ public class AnimalResponseDTO {
     @JsonProperty("refugio_id")
     private Long refugioId;
 
+    @JsonProperty("refugio_nombre")
+    private String refugioNombre;
+
+    @JsonProperty("refugio_telefono")
+    private String refugioTelefono;
+
+    @JsonProperty("refugio_email")
+    private String refugioEmail;
+
+    @JsonProperty("refugio_direccion")
+    private String refugioDireccion;
+
+    @JsonProperty("refugio_region")
+    private String refugioRegion;
+
     private List<String> fotos;
 
     @JsonProperty("fecha_registro")
@@ -61,6 +76,17 @@ public class AnimalResponseDTO {
     public String getHistoria() { return historia; }
     public String getEstadoAdopcion() { return estadoAdopcion; }
     public Long getRefugioId() { return refugioId; }
+    public String getRefugioNombre() { return refugioNombre; }
+    public String getRefugioTelefono() { return refugioTelefono; }
+    public String getRefugioEmail() { return refugioEmail; }
+    public String getRefugioDireccion() { return refugioDireccion; }
+    public String getRefugioRegion() { return refugioRegion; }
     public List<String> getFotos() { return fotos; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
+
+    public void setRefugioNombre(String refugioNombre) { this.refugioNombre = refugioNombre; }
+    public void setRefugioTelefono(String refugioTelefono) { this.refugioTelefono = refugioTelefono; }
+    public void setRefugioEmail(String refugioEmail) { this.refugioEmail = refugioEmail; }
+    public void setRefugioDireccion(String refugioDireccion) { this.refugioDireccion = refugioDireccion; }
+    public void setRefugioRegion(String refugioRegion) { this.refugioRegion = refugioRegion; }
 }
