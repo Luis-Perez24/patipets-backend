@@ -2,11 +2,14 @@ package com.patipets.infrastructure.web.controller;
 
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.domain.models.Alerta;
+import com.patipets.core.domain.models.RespuestaAlerta;
 import com.patipets.core.domain.models.Usuario;
 import com.patipets.infrastructure.security.RefugioAccessGuard;
 import com.patipets.infrastructure.web.dto.AlertaResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
+import com.patipets.infrastructure.web.dto.RespuestaAlertaResponseDTO;
 import com.patipets.infrastructure.web.dto.request.AlertaRequestDTO;
+import com.patipets.infrastructure.web.dto.request.ResponderAlertaRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +51,7 @@ public class AlertaController {
     }
 
     @GetMapping("/refugio/{refugioId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO')")
     public ResponseEntity<ApiResponseDTO<List<AlertaResponseDTO>>> listarPorRefugio(
             @PathVariable Long refugioId) {
         List<Alerta> alertas = gestionAlertaUseCase.listarPorRefugio(refugioId);
@@ -59,7 +62,7 @@ public class AlertaController {
     }
 
     @GetMapping("/activas")
-    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO')")
     public ResponseEntity<ApiResponseDTO<List<AlertaResponseDTO>>> listarActivas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -92,5 +95,46 @@ public class AlertaController {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
         }
+    }
+
+    @PostMapping("/{id}/responder")
+    @PreAuthorize("hasAnyRole('VOLUNTARIO', 'PADRINO')")
+    public ResponseEntity<ApiResponseDTO<RespuestaAlertaResponseDTO>> responderAlerta(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody ResponderAlertaRequestDTO request) {
+        try {
+            Usuario usuario = (Usuario) authentication.getPrincipal();
+            RespuestaAlerta respuesta = gestionAlertaUseCase.responder(
+                    id, usuario.getId(), request.getTipoAyuda(), request.getMensaje());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponseDTO.ok("Respuesta registrada", RespuestaAlertaResponseDTO.fromDomain(respuesta)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/mis-respuestas")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDTO<List<RespuestaAlertaResponseDTO>>> misRespuestas(
+            Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        List<RespuestaAlerta> respuestas = gestionAlertaUseCase.listarRespuestasPorUsuario(usuario.getId());
+        var dto = respuestas.stream()
+                .map(RespuestaAlertaResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+    }
+
+    @GetMapping("/{id}/respuestas")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO', 'VOLUNTARIO', 'PADRINO')")
+    public ResponseEntity<ApiResponseDTO<List<RespuestaAlertaResponseDTO>>> listarRespuestas(
+            @PathVariable Long id) {
+        List<RespuestaAlerta> respuestas = gestionAlertaUseCase.listarRespuestasPorAlerta(id);
+        var dto = respuestas.stream()
+                .map(RespuestaAlertaResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
 }

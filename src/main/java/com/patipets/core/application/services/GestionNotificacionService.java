@@ -73,6 +73,7 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
 
         Set<Long> destinatarios = new HashSet<>();
         usuarioRepository.findActivosByRol(Rol.VOLUNTARIO).forEach(u -> destinatarios.add(u.getId()));
+        usuarioRepository.findActivosByRol(Rol.PADRINO).forEach(u -> destinatarios.add(u.getId()));
         solicitudRepository.findByRefugioId(refugioId).forEach(s -> destinatarios.add(s.getAdoptanteId()));
 
         for (Long usuarioId : destinatarios) {
