@@ -1,6 +1,7 @@
 package com.patipets.core.application.ports.output;
 
 import com.patipets.core.domain.enums.EstadoRefugio;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,5 @@ public interface RefugioRepositoryPort {
     void vincularUsuario(Long usuarioId, Long refugioId);
     boolean perteneceAUsuario(Long refugioId, Long usuarioId);
     List<Refugio> findByUsuario(Long usuarioId);
+    PaginatedResult<Refugio> findAll(String estado, String region, String busqueda, int page, int size);
 }

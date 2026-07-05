@@ -2,6 +2,7 @@ package com.patipets.infrastructure.persistence.adapter;
 
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.domain.enums.EstadoRefugio;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.infrastructure.persistence.entity.RefugioEntity;
 import com.patipets.infrastructure.persistence.entity.UsuarioEntity;
@@ -9,6 +10,12 @@ import com.patipets.infrastructure.persistence.entity.UsuarioRefugioEntity;
 import com.patipets.infrastructure.persistence.repository.RefugioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioJpaRepository;
 import com.patipets.infrastructure.persistence.repository.UsuarioRefugioJpaRepository;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,6 +103,31 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
                 .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PaginatedResult<Refugio> findAll(String estado, String region, String busqueda, int page, int size) {
+        Specification<RefugioEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (estado != null && !estado.isEmpty()) {
+                predicates.add(cb.equal(root.get("estado"), EstadoRefugio.valueOf(estado)));
+            }
+            if (region != null && !region.isEmpty()) {
+                predicates.add(cb.equal(root.get("region"), region));
+            }
+            if (busqueda != null && !busqueda.isEmpty()) {
+                String pattern = "%" + busqueda.toLowerCase() + "%";
+                predicates.add(cb.like(cb.lower(root.get("nombre")), pattern));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        Page<RefugioEntity> pageResult = jpaRepository.findAll(spec,
+                PageRequest.of(page, size, Sort.by("fechaCreacion").descending()));
+        List<Refugio> items = pageResult.getContent().stream()
+                .map(this::toDomain)
+                .toList();
+        return new PaginatedResult<>(items, pageResult.getTotalPages(),
+                pageResult.getTotalElements(), pageResult.getNumber(), pageResult.getSize());
     }
 
     private Refugio toDomain(RefugioEntity entity) {

@@ -10,6 +10,7 @@ import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.SolicitudAdopcion;
 import com.patipets.core.domain.models.Usuario;
+import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.infrastructure.web.dto.AdminAnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.AdminDashboardStatsResponseDTO;
 import com.patipets.infrastructure.web.dto.AdminSolicitudAdopcionResponseDTO;
@@ -110,6 +111,23 @@ public class AdminController {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
         }
+    }
+
+    @GetMapping("/refugios")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponseDTO<PaginatedResponseDTO<RefugioResponseDTO>>> listarRefugios(
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PaginatedResult<Refugio> result = gestionRefugioUseCase.listarTodos(estado, region, busqueda, page, size);
+        List<RefugioResponseDTO> dto = result.getItems().stream()
+                .map(RefugioResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        PaginatedResponseDTO<RefugioResponseDTO> paginated = new PaginatedResponseDTO<>(
+                dto, result.getTotalPages(), result.getTotalElements(), result.getPage(), result.getSize());
+        return ResponseEntity.ok(ApiResponseDTO.ok(paginated));
     }
 
     @GetMapping("/dashboard/estadisticas")

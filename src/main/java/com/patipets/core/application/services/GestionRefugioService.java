@@ -8,6 +8,7 @@ import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
 import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.enums.Rol;
+import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.Usuario;
 import org.springframework.web.multipart.MultipartFile;
@@ -125,5 +126,10 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     @Override
     public List<Refugio> listarMisRefugios(Long usuarioId) {
         return refugioRepository.findByUsuario(usuarioId);
+    }
+
+    @Override
+    public PaginatedResult<Refugio> listarTodos(String estado, String region, String busqueda, int page, int size) {
+        return refugioRepository.findAll(estado, region, busqueda, page, size);
     }
 }
