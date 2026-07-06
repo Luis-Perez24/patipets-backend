@@ -13,6 +13,7 @@ import com.patipets.core.domain.models.RespuestaAlerta;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GestionAlertaService implements GestionAlertaUseCase {
 
@@ -72,7 +73,26 @@ public class GestionAlertaService implements GestionAlertaUseCase {
 
     @Override
     public List<Alerta> listarPorRefugio(Long refugioId) {
-        return alertaRepository.findByRefugioId(refugioId);
+        return listarPorRefugio(refugioId, null);
+    }
+
+    @Override
+    public List<Alerta> listarPorRefugio(Long refugioId, String tipo) {
+        List<Alerta> todas = alertaRepository.findByRefugioId(refugioId);
+        if (tipo == null || "todas".equalsIgnoreCase(tipo)) {
+            return todas;
+        }
+        if ("convocatoria".equalsIgnoreCase(tipo)) {
+            return todas.stream()
+                    .filter(a -> a.getTipoAyuda() != null)
+                    .collect(Collectors.toList());
+        }
+        if ("alerta".equalsIgnoreCase(tipo)) {
+            return todas.stream()
+                    .filter(a -> a.getTipoAyuda() == null)
+                    .collect(Collectors.toList());
+        }
+        return todas;
     }
 
     @Override

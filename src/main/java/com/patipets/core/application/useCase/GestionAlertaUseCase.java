@@ -9,6 +9,7 @@ public interface GestionAlertaUseCase {
     Alerta crear(String titulo, String descripcion, String nivelUrgencia, Long refugioId, Long creadoPor,
                  String tipoAyuda, String fecha, String perfilRequerido);
     List<Alerta> listarPorRefugio(Long refugioId);
+    List<Alerta> listarPorRefugio(Long refugioId, String tipo);
     List<Alerta> listarActivas(int page, int size);
     Alerta marcarResuelta(Long id);
     void eliminar(Long id);

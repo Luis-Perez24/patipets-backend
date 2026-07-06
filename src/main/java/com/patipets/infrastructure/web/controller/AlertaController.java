@@ -70,8 +70,9 @@ public class AlertaController {
 
     @GetMapping("/refugio/{refugioId}")
     public ResponseEntity<ApiResponseDTO<List<AlertaResponseDTO>>> listarPorRefugio(
-            @PathVariable Long refugioId) {
-        List<Alerta> alertas = gestionAlertaUseCase.listarPorRefugio(refugioId);
+            @PathVariable Long refugioId,
+            @RequestParam(name = "tipo", defaultValue = "todas") String tipo) {
+        List<Alerta> alertas = gestionAlertaUseCase.listarPorRefugio(refugioId, tipo);
         var dto = alertas.stream()
                 .map(a -> enriquecerAlerta(AlertaResponseDTO.fromDomain(a)))
                 .collect(Collectors.toList());
