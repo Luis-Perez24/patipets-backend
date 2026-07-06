@@ -52,13 +52,13 @@ public class AlertaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AlertaResponseDTO>> crearAlerta(
             Authentication authentication,
-            @Valid @RequestBody AlertaRequestDTO request,
-            @RequestAttribute("usuarioId") Long usuarioId) {
+            @Valid @RequestBody AlertaRequestDTO request) {
         try {
-            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), request.getRefugioId());
+            Usuario usuario = (Usuario) authentication.getPrincipal();
+            refugioAccessGuard.verificar(usuario, request.getRefugioId());
             Alerta alerta = gestionAlertaUseCase.crear(
                     request.getTitulo(), request.getDescripcion(),
-                    request.getNivelUrgencia(), request.getRefugioId(), usuarioId,
+                    request.getNivelUrgencia(), request.getRefugioId(), usuario.getId(),
                     request.getTipoAyuda(), request.getFecha(), request.getPerfilRequerido());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Alerta creada", enriquecerAlerta(AlertaResponseDTO.fromDomain(alerta))));
@@ -92,10 +92,15 @@ public class AlertaController {
 
     @PutMapping("/{id}/resolver")
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
-    public ResponseEntity<ApiResponseDTO<AlertaResponseDTO>> marcarResuelta(@PathVariable Long id) {
+    public ResponseEntity<ApiResponseDTO<AlertaResponseDTO>> marcarResuelta(
+            Authentication authentication,
+            @PathVariable Long id) {
         try {
-            Alerta alerta = gestionAlertaUseCase.marcarResuelta(id);
-            return ResponseEntity.ok(ApiResponseDTO.ok("Alerta resuelta", enriquecerAlerta(AlertaResponseDTO.fromDomain(alerta))));
+            Alerta alerta = alertaRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + id));
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), alerta.getRefugioId());
+            Alerta resuelta = gestionAlertaUseCase.marcarResuelta(id);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Alerta resuelta", enriquecerAlerta(AlertaResponseDTO.fromDomain(resuelta))));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
@@ -106,9 +111,11 @@ public class AlertaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<Void>> eliminarAlerta(
             Authentication authentication,
-            @PathVariable Long id,
-            @RequestAttribute("usuarioId") Long usuarioId) {
+            @PathVariable Long id) {
         try {
+            Alerta alerta = alertaRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + id));
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), alerta.getRefugioId());
             gestionAlertaUseCase.eliminar(id);
             return ResponseEntity.ok(ApiResponseDTO.ok("Alerta eliminada", null));
         } catch (IllegalArgumentException e) {

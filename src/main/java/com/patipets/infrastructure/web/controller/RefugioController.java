@@ -150,6 +150,21 @@ public class RefugioController {
         }
     }
 
+    @GetMapping("/{refugioId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> obtenerRefugio(
+            Authentication authentication,
+            @PathVariable Long refugioId) {
+        try {
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
+            return gestionRefugioUseCase.obtenerPorId(refugioId)
+                    .map(r -> ResponseEntity.ok(ApiResponseDTO.ok(RefugioResponseDTO.fromDomain(r))))
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
     @GetMapping("/{refugioId}/animales")
     public ResponseEntity<ApiResponseDTO<List<AnimalResponseDTO>>> listarAnimales(
             @PathVariable Long refugioId) {
