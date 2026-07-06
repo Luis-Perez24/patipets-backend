@@ -172,4 +172,54 @@ public class AuthService implements AuthUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
         usuarioRepository.deleteById(usuario.getId());
     }
+
+    @Override
+    public void solicitarRecuperacionPassword(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("No hay un usuario registrado con este correo"));
+        if (!usuario.isActivo()) {
+            throw new IllegalStateException("La cuenta está desactivada");
+        }
+        
+        String token = java.util.UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        
+        usuarioRepository.save(usuario);
+        
+        // Simular envío de correo o enviar uno real usando JavaMailSender.
+        System.out.println("==================================================");
+        System.out.println("RECOVERY LINK GENERATED FOR: " + email);
+        System.out.println("http://localhost:5173/restablecer?token=" + token);
+        System.out.println("==================================================");
+    }
+
+    @Override
+    public void restablecerPassword(String token, String nuevaPassword) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Token inválido");
+        }
+        Usuario usuario = usuarioRepository.findByResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("El token es inválido o ha expirado"));
+                
+        if (usuario.getResetTokenExpiry() == null || usuario.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("El token ha expirado");
+        }
+        
+        String hashedPassword = passwordEncoder.encode(nuevaPassword);
+        
+        // Use constructor since we need to modify final fields if we used it, but we can't modify password via setter.
+        // Wait, password is a final field in Usuario. We need to create a new Usuario object.
+        Usuario actualizado = new Usuario(
+                usuario.getId(), usuario.getNombre(), usuario.getEmail(),
+                hashedPassword, usuario.getRol(), usuario.getFotoPerfil(),
+                usuario.getNumeroContacto(), usuario.getUbicacion(),
+                usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(),
+                usuario.getBiografia(), usuario.isActivo(), usuario.getFechaRegistro()
+        );
+        actualizado.setResetToken(null);
+        actualizado.setResetTokenExpiry(null);
+        
+        usuarioRepository.save(actualizado);
+    }
 }

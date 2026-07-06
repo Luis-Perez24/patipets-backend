@@ -13,4 +13,5 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
     boolean existsByEmail(String email);
     long countByRol(Rol rol);
     List<UsuarioEntity> findByRolAndActivoTrue(Rol rol);
+    Optional<UsuarioEntity> findByResetToken(String resetToken);
 }

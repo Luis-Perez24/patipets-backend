@@ -37,6 +37,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
+    public Optional<Usuario> findByResetToken(String resetToken) {
+        return jpaRepository.findByResetToken(resetToken).map(this::toDomain);
+    }
+
+    @Override
     public Usuario save(Usuario usuario) {
         UsuarioEntity entity = toEntity(usuario);
         UsuarioEntity saved = jpaRepository.save(entity);
@@ -99,7 +104,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     }
 
     private Usuario toDomain(UsuarioEntity entity) {
-        return new Usuario(
+        Usuario u = new Usuario(
                 entity.getId(),
                 entity.getNombre(),
                 entity.getEmail(),
@@ -115,6 +120,9 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
                 entity.isActivo(),
                 entity.getFechaRegistro()
         );
+        u.setResetToken(entity.getResetToken());
+        u.setResetTokenExpiry(entity.getResetTokenExpiry());
+        return u;
     }
 
     private UsuarioEntity toEntity(Usuario domain) {
@@ -133,6 +141,8 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         entity.setBiografia(domain.getBiografia());
         entity.setActivo(domain.isActivo());
         entity.setFechaRegistro(domain.getFechaRegistro());
+        entity.setResetToken(domain.getResetToken());
+        entity.setResetTokenExpiry(domain.getResetTokenExpiry());
         return entity;
     }
 }

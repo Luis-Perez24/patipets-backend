@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface UsuarioRepositoryPort {
     Optional<Usuario> findByEmail(String email);
     Optional<Usuario> findById(Long id);
+    Optional<Usuario> findByResetToken(String resetToken);
     Usuario save(Usuario usuario);
     boolean existsByEmail(String email);
     PaginatedResult<Usuario> findAll(Rol rol, Boolean activo, String fechaDesde, String fechaHasta, int page, int size);

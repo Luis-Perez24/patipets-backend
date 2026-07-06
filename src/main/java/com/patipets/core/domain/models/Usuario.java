@@ -19,6 +19,8 @@ public class Usuario {
     private final boolean activo;
     private final LocalDateTime fechaRegistro;
     private Long refugioId;
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
 
     public Usuario(Long id, String nombre, String email, String password,
                    Rol rol, String fotoPerfil, String numeroContacto,
@@ -56,4 +58,8 @@ public class Usuario {
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
     public Long getRefugioId() { return refugioId; }
     public void setRefugioId(Long refugioId) { this.refugioId = refugioId; }
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 }
