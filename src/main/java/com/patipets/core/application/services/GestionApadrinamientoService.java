@@ -41,6 +41,9 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
         if (apadrinamientoRepository.existsByPadrinoIdAndAnimalIdAndActivoTrue(padrinoId, animalId)) {
             throw new IllegalArgumentException("Ya estás apadrinando a este animal");
         }
+        if (refugioRepository.perteneceAUsuario(animal.getRefugioId(), padrinoId)) {
+            throw new IllegalArgumentException("No puedes apadrinar un animal de tu propio refugio");
+        }
         Refugio refugio = refugioRepository.findById(animal.getRefugioId())
                 .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado"));
         TipoApoyo tipo;

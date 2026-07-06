@@ -180,6 +180,9 @@ public class GestionAnimalService implements GestionAnimalUseCase {
         if (animal.getEstadoAdopcion() != EstadoAnimal.DISPONIBLE) {
             throw new IllegalStateException("El animal no está disponible para adopción");
         }
+        if (refugioRepository.perteneceAUsuario(animal.getRefugioId(), adoptanteId)) {
+            throw new IllegalArgumentException("No puedes adoptar un animal de tu propio refugio");
+        }
         SolicitudAdopcion solicitud = new SolicitudAdopcion(
                 null, animalId, adoptanteId, animal.getRefugioId(),
                 EstadoPostulacion.PENDIENTE, LocalDateTime.now(), LocalDateTime.now(),
