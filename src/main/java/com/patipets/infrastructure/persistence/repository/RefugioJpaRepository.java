@@ -11,5 +11,7 @@ public interface RefugioJpaRepository extends JpaRepository<RefugioEntity, Long>
 
     List<RefugioEntity> findByEstado(EstadoRefugio estado);
 
+    List<RefugioEntity> findByUsuarioId(Long usuarioId);
+
     long countByEstado(EstadoRefugio estado);
 }

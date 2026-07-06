@@ -56,9 +56,11 @@ public class GestionRefugioService implements GestionRefugioUseCase {
         if (usuarioId == null) {
             throw new IllegalArgumentException("Usuario no autenticado");
         }
-        List<Refugio> existentes = refugioRepository.findByUsuario(usuarioId);
-        if (!existentes.isEmpty()) {
-            throw new IllegalStateException("Ya tienes un refugio registrado. Solo se permite un refugio por usuario.");
+        List<Refugio> existentes = refugioRepository.findSolicitudesByUsuario(usuarioId);
+        boolean tieneSolicitudActiva = existentes.stream()
+                .anyMatch(r -> r.getEstado() == EstadoRefugio.PENDIENTE || r.getEstado() == EstadoRefugio.APROBADO);
+        if (tieneSolicitudActiva) {
+            throw new IllegalArgumentException("Ya tienes una solicitud de refugio pendiente o aprobada. Solo se permite un refugio por usuario.");
         }
 
         String fotoUrl = (foto != null && !foto.isEmpty()) ? imageStoragePort.upload(foto) : null;
@@ -79,7 +81,6 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 usuarioId, null, LocalDateTime.now()
         );
         Refugio guardado = refugioRepository.save(nuevo);
-        refugioRepository.vincularUsuario(usuarioId, guardado.getId());
         return guardado;
     }
 
@@ -168,6 +169,7 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                 refugio.getFechaCreacion()
         );
         Refugio guardado = refugioRepository.save(actualizado);
+        refugioRepository.vincularUsuario(refugio.getUsuarioId(), guardado.getId());
         promoverAAdminRefugio(refugio.getUsuarioId());
         eventPublisher.publicar(new SolicitudRefugioCambiadaEvent(
                 guardado.getId(), guardado.getUsuarioId(), guardado.getNombre(), guardado.getEstado().name()));
@@ -246,7 +248,7 @@ public class GestionRefugioService implements GestionRefugioUseCase {
 
     @Override
     public List<Refugio> listarMisRefugios(Long usuarioId) {
-        return refugioRepository.findByUsuario(usuarioId);
+        return refugioRepository.findSolicitudesByUsuario(usuarioId);
     }
 
     @Override

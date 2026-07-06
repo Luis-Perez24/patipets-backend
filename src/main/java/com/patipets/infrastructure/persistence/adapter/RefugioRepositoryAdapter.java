@@ -106,6 +106,14 @@ public class RefugioRepositoryAdapter implements RefugioRepositoryPort {
     }
 
     @Override
+    public List<Refugio> findSolicitudesByUsuario(Long usuarioId) {
+        return jpaRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public PaginatedResult<Refugio> findAll(String estado, String region, String busqueda, int page, int size) {
         Specification<RefugioEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

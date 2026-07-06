@@ -16,5 +16,6 @@ public interface RefugioRepositoryPort {
     void vincularUsuario(Long usuarioId, Long refugioId);
     boolean perteneceAUsuario(Long refugioId, Long usuarioId);
     List<Refugio> findByUsuario(Long usuarioId);
+    List<Refugio> findSolicitudesByUsuario(Long usuarioId);
     PaginatedResult<Refugio> findAll(String estado, String region, String busqueda, int page, int size);
 }
