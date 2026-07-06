@@ -2,6 +2,7 @@ package com.patipets.infrastructure.web.controller;
 
 import com.patipets.core.application.ports.output.AlertaRepositoryPort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
+import com.patipets.core.application.ports.output.RespuestaAlertaRepositoryPort;
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.GestionAlertaUseCase;
 import com.patipets.core.domain.models.Alerta;
@@ -20,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,16 +32,19 @@ public class AlertaController {
     private final RefugioAccessGuard refugioAccessGuard;
     private final RefugioRepositoryPort refugioRepository;
     private final AlertaRepositoryPort alertaRepository;
+    private final RespuestaAlertaRepositoryPort respuestaRepository;
     private final UsuarioRepositoryPort usuarioRepository;
 
     public AlertaController(GestionAlertaUseCase gestionAlertaUseCase, RefugioAccessGuard refugioAccessGuard,
                             RefugioRepositoryPort refugioRepository,
                             AlertaRepositoryPort alertaRepository,
+                            RespuestaAlertaRepositoryPort respuestaRepository,
                             UsuarioRepositoryPort usuarioRepository) {
         this.gestionAlertaUseCase = gestionAlertaUseCase;
         this.refugioAccessGuard = refugioAccessGuard;
         this.refugioRepository = refugioRepository;
         this.alertaRepository = alertaRepository;
+        this.respuestaRepository = respuestaRepository;
         this.usuarioRepository = usuarioRepository;
     }
 
@@ -153,6 +158,47 @@ public class AlertaController {
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
 
+    @GetMapping("/refugio/{refugioId}/todas-respuestas")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<List<RespuestaAlertaResponseDTO>>> listarRespuestasPorRefugio(
+            Authentication authentication,
+            @PathVariable Long refugioId) {
+        try {
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
+            List<RespuestaAlerta> respuestas = gestionAlertaUseCase.listarRespuestasPorRefugio(refugioId);
+            var dto = respuestas.stream()
+                    .map(r -> enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(r)))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/respuestas/{id}/cancelar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<RespuestaAlertaResponseDTO>> cancelarRespuesta(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        try {
+            RespuestaAlerta respuesta = respuestaRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Inscripción no encontrada: " + id));
+            Alerta alerta = alertaRepository.findById(respuesta.getAlertaId())
+                    .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + respuesta.getAlertaId()));
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), alerta.getRefugioId());
+            String motivo = body != null ? body.get("motivo") : null;
+            RespuestaAlerta cancelada = gestionAlertaUseCase.cancelarRespuestaPorRefugio(
+                    id, alerta.getRefugioId(), motivo);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Inscripción cancelada",
+                    enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(cancelada))));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
     private AlertaResponseDTO enriquecerAlerta(AlertaResponseDTO dto) {
         refugioRepository.findById(dto.getRefugioId())
                 .ifPresent(r -> dto.setRefugioNombre(r.getNombre()));
@@ -161,7 +207,12 @@ public class AlertaController {
 
     private RespuestaAlertaResponseDTO enriquecerRespuesta(RespuestaAlertaResponseDTO dto) {
         alertaRepository.findById(dto.getAlertaId())
-                .ifPresent(a -> dto.setAlertaTitulo(a.getTitulo()));
+                .ifPresent(a -> {
+                    dto.setAlertaTitulo(a.getTitulo());
+                    dto.setRefugioId(a.getRefugioId());
+                    refugioRepository.findById(a.getRefugioId())
+                            .ifPresent(r -> dto.setRefugioNombre(r.getNombre()));
+                });
         usuarioRepository.findById(dto.getUsuarioId())
                 .ifPresent(u -> dto.setUsuarioNombre(u.getNombre()));
         return dto;

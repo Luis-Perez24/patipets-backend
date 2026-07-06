@@ -2,6 +2,7 @@ package com.patipets.infrastructure.events;
 
 import com.patipets.core.application.events.AlertaUrgentePublicadaEvent;
 import com.patipets.core.application.events.EstadoSolicitudCambiadoEvent;
+import com.patipets.core.application.events.InscripcionVoluntariadoCanceladaEvent;
 import com.patipets.core.application.events.SolicitudRefugioCambiadaEvent;
 import com.patipets.core.application.useCase.GestionNotificacionUseCase;
 import org.springframework.context.event.EventListener;
@@ -37,5 +38,13 @@ public class NotificacionEventListener {
     public void onSolicitudRefugioCambiada(SolicitudRefugioCambiadaEvent evento) {
         gestionNotificacionUseCase.procesarCambioEstadoRefugio(
                 evento.getRefugioId(), evento.getUsuarioId(), evento.getNombreRefugio(), evento.getNuevoEstado());
+    }
+
+    @Async
+    @EventListener
+    public void onInscripcionVoluntariadoCancelada(InscripcionVoluntariadoCanceladaEvent evento) {
+        gestionNotificacionUseCase.procesarCancelacionInscripcionVoluntariado(
+                evento.getInscripcionId(), evento.getVoluntarioId(), evento.getAlertaId(),
+                evento.getAlertaTitulo(), evento.getMotivo());
     }
 }

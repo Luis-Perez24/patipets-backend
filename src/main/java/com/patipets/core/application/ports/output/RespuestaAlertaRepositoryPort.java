@@ -9,5 +9,6 @@ public interface RespuestaAlertaRepositoryPort {
     Optional<RespuestaAlerta> findById(Long id);
     List<RespuestaAlerta> findByAlertaId(Long alertaId);
     List<RespuestaAlerta> findByUsuarioId(Long usuarioId);
+    List<RespuestaAlerta> findByRefugioId(Long refugioId);
     boolean existsByAlertaIdAndUsuarioId(Long alertaId, Long usuarioId);
 }

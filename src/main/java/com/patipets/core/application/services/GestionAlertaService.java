@@ -1,6 +1,7 @@
 package com.patipets.core.application.services;
 
 import com.patipets.core.application.events.AlertaUrgentePublicadaEvent;
+import com.patipets.core.application.events.InscripcionVoluntariadoCanceladaEvent;
 import com.patipets.core.application.ports.output.AlertaRepositoryPort;
 import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.RespuestaAlertaRepositoryPort;
@@ -137,5 +138,35 @@ public class GestionAlertaService implements GestionAlertaUseCase {
     @Override
     public List<RespuestaAlerta> listarRespuestasPorAlerta(Long alertaId) {
         return respuestaRepository.findByAlertaId(alertaId);
+    }
+
+    @Override
+    public List<RespuestaAlerta> listarRespuestasPorRefugio(Long refugioId) {
+        return respuestaRepository.findByRefugioId(refugioId);
+    }
+
+    @Override
+    public RespuestaAlerta cancelarRespuestaPorRefugio(Long respuestaId, Long refugioId, String motivo) {
+        RespuestaAlerta existente = respuestaRepository.findById(respuestaId)
+                .orElseThrow(() -> new IllegalArgumentException("Inscripción no encontrada: " + respuestaId));
+        Alerta alerta = alertaRepository.findById(existente.getAlertaId())
+                .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + existente.getAlertaId()));
+        if (!alerta.getRefugioId().equals(refugioId)) {
+            throw new IllegalArgumentException("La inscripción no pertenece a este refugio");
+        }
+        if ("CANCELADA".equals(existente.getEstado())) {
+            throw new IllegalStateException("La inscripción ya está cancelada");
+        }
+        RespuestaAlerta cancelada = new RespuestaAlerta(
+                existente.getId(), existente.getAlertaId(), existente.getUsuarioId(),
+                existente.getTipoAyuda(), existente.getMensaje(), existente.getDisponibilidad(),
+                existente.getCreatedAt(),
+                "CANCELADA", java.time.LocalDateTime.now(), motivo
+        );
+        RespuestaAlerta guardada = respuestaRepository.save(cancelada);
+        eventPublisher.publicar(new InscripcionVoluntariadoCanceladaEvent(
+                guardada.getId(), guardada.getUsuarioId(), guardada.getAlertaId(),
+                alerta.getTitulo(), motivo));
+        return guardada;
     }
 }

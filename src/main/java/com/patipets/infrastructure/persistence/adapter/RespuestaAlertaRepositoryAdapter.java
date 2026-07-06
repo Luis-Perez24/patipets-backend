@@ -42,15 +42,28 @@ public class RespuestaAlertaRepositoryAdapter implements RespuestaAlertaReposito
     }
 
     @Override
+    public List<RespuestaAlerta> findByRefugioId(Long refugioId) {
+        return jpaRepository.findByRefugioIdOrderByCreatedAtDesc(refugioId)
+                .stream().map(this::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
     public boolean existsByAlertaIdAndUsuarioId(Long alertaId, Long usuarioId) {
         return jpaRepository.existsByAlertaIdAndUsuarioId(alertaId, usuarioId);
     }
 
     private RespuestaAlerta toDomain(RespuestaAlertaEntity entity) {
+        TipoAyudaVoluntariado tipo = null;
+        try {
+            tipo = TipoAyudaVoluntariado.valueOf(entity.getTipoAyuda());
+        } catch (IllegalArgumentException ignored) {
+            tipo = null;
+        }
         return new RespuestaAlerta(
                 entity.getId(), entity.getAlertaId(), entity.getUsuarioId(),
-                TipoAyudaVoluntariado.valueOf(entity.getTipoAyuda()),
-                entity.getMensaje(), entity.getDisponibilidad(), entity.getCreatedAt()
+                tipo,
+                entity.getMensaje(), entity.getDisponibilidad(), entity.getCreatedAt(),
+                entity.getEstado(), entity.getFechaCancelacion(), entity.getMotivoCancelacion()
         );
     }
 
@@ -59,10 +72,13 @@ public class RespuestaAlertaRepositoryAdapter implements RespuestaAlertaReposito
         entity.setId(respuesta.getId());
         entity.setAlertaId(respuesta.getAlertaId());
         entity.setUsuarioId(respuesta.getUsuarioId());
-        entity.setTipoAyuda(respuesta.getTipoAyuda().name());
+        entity.setTipoAyuda(respuesta.getTipoAyuda() != null ? respuesta.getTipoAyuda().name() : "OTROS");
         entity.setMensaje(respuesta.getMensaje());
         entity.setDisponibilidad(respuesta.getDisponibilidad());
         entity.setCreatedAt(respuesta.getCreatedAt());
+        entity.setEstado(respuesta.getEstado() != null ? respuesta.getEstado() : "ACTIVA");
+        entity.setFechaCancelacion(respuesta.getFechaCancelacion());
+        entity.setMotivoCancelacion(respuesta.getMotivoCancelacion());
         return entity;
     }
 }

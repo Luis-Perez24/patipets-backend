@@ -16,4 +16,6 @@ public interface GestionAlertaUseCase {
     RespuestaAlerta responder(Long alertaId, Long usuarioId, String tipoAyuda, String mensaje, String disponibilidad);
     List<RespuestaAlerta> listarRespuestasPorUsuario(Long usuarioId);
     List<RespuestaAlerta> listarRespuestasPorAlerta(Long alertaId);
+    List<RespuestaAlerta> listarRespuestasPorRefugio(Long refugioId);
+    RespuestaAlerta cancelarRespuestaPorRefugio(Long respuestaId, Long refugioId, String motivo);
 }

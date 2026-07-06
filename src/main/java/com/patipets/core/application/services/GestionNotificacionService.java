@@ -133,6 +133,17 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
         notificar(usuarioId, TipoNotificacion.CAMBIO_ESTADO_REFUGIO, titulo, mensaje, refugioId);
     }
 
+    @Override
+    public void procesarCancelacionInscripcionVoluntariado(Long inscripcionId, Long voluntarioId,
+                                                          Long alertaId, String alertaTitulo, String motivo) {
+        String titulo = "Inscripción a convocatoria cancelada";
+        String mensaje = String.format(
+                "El refugio canceló tu inscripción a la convocatoria \"%s\".%s",
+                alertaTitulo,
+                (motivo != null && !motivo.isBlank()) ? " Motivo: " + motivo : "");
+        notificar(voluntarioId, TipoNotificacion.INSCRIPCION_VOLUNTARIADO_CANCELADA, titulo, mensaje, inscripcionId);
+    }
+
     private void notificar(Long usuarioId, TipoNotificacion tipo, String titulo, String mensaje, Long entidadRelacionadaId) {
         Notificacion notificacion = new Notificacion(
                 null, usuarioId, tipo, titulo, mensaje, entidadRelacionadaId, false, LocalDateTime.now()
