@@ -15,4 +15,5 @@ public interface UsuarioRepositoryPort {
     List<Usuario> findActivosByRol(Rol rol);
     long countAll();
     long countByRol(Rol rol);
+    void deleteById(Long id);
 }

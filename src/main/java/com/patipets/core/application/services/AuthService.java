@@ -165,4 +165,11 @@ public class AuthService implements AuthUseCase {
             return usuario;
         });
     }
+
+    @Override
+    public void eliminarCuenta(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        usuarioRepository.deleteById(usuario.getId());
+    }
 }

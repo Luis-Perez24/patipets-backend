@@ -129,4 +129,15 @@ public class AuthController {
         return ResponseEntity.ok(
                 ApiResponseDTO.ok(UsuarioResponseDTO.fromDomain(usuario)));
     }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponseDTO<Void>> eliminarCuenta(Authentication authentication) {
+        try {
+            Usuario usuarioActual = (Usuario) authentication.getPrincipal();
+            authUseCase.eliminarCuenta(usuarioActual.getId());
+            return ResponseEntity.ok(ApiResponseDTO.ok("Cuenta eliminada exitosamente", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
 }

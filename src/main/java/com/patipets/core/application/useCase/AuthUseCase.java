@@ -15,4 +15,5 @@ public interface AuthUseCase {
                              String biografia, String fotoPerfil);
     Usuario actualizarFotoPerfil(Long usuarioId, MultipartFile foto) throws IOException;
     Optional<Usuario> obtenerPorId(Long id);
+    void eliminarCuenta(Long id);
 }

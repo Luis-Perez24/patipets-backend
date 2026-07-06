@@ -93,6 +93,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
                 .toList();
     }
 
+    @Override
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
+    }
+
     private Usuario toDomain(UsuarioEntity entity) {
         return new Usuario(
                 entity.getId(),
