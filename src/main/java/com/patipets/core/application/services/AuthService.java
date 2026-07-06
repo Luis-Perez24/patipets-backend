@@ -84,25 +84,37 @@ public class AuthService implements AuthUseCase {
     public Usuario activarRol(Long usuarioId, String nuevoRol) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        Rol rol;
         try {
-            Rol rol = Rol.valueOf(nuevoRol.toUpperCase());
-            if (rol == Rol.ADMIN) {
-                throw new IllegalArgumentException("No puedes auto-asignarte el rol ADMIN");
-            }
-            Usuario actualizado = new Usuario(
-                    usuario.getId(), usuario.getNombre(), usuario.getEmail(),
-                    usuario.getPassword(), rol, usuario.getFotoPerfil(),
-                    usuario.getNumeroContacto(), usuario.getUbicacion(),
-                    usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
-                    usuario.isActivo(), usuario.getFechaRegistro()
-            );
-            Usuario guardado = usuarioRepository.save(actualizado);
-            enriquecerConRefugio(guardado);
-            return guardado;
+            rol = Rol.valueOf(nuevoRol.toUpperCase());
         } catch (IllegalArgumentException e) {
-            if (e.getMessage() != null && e.getMessage().contains("No puedes")) throw e;
             throw new IllegalArgumentException("Rol inválido: " + nuevoRol);
         }
+
+        if (rol == Rol.ADMIN) {
+            throw new IllegalArgumentException("No puedes auto-asignarte el rol ADMIN");
+        }
+
+        if (rol == Rol.REFUGIO) {
+            List<Refugio> refugios = refugioRepository.findByUsuario(usuarioId);
+            boolean tieneRefugioAprobado = refugios.stream()
+                    .anyMatch(r -> r.getEstado() == EstadoRefugio.APROBADO);
+            if (!tieneRefugioAprobado) {
+                throw new IllegalArgumentException("No tienes un refugio aprobado para administrar.");
+            }
+        }
+
+        Usuario actualizado = new Usuario(
+                usuario.getId(), usuario.getNombre(), usuario.getEmail(),
+                usuario.getPassword(), rol, usuario.getFotoPerfil(),
+                usuario.getNumeroContacto(), usuario.getUbicacion(),
+                usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
+                usuario.isActivo(), usuario.getFechaRegistro()
+        );
+        Usuario guardado = usuarioRepository.save(actualizado);
+        enriquecerConRefugio(guardado);
+        return guardado;
     }
 
     @Override
