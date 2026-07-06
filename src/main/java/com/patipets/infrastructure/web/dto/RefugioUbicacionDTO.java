@@ -18,6 +18,12 @@ public class RefugioUbicacionDTO {
     private String telefono;
     private String email;
 
+    private String foto;
+
+    private Integer capacidad;
+
+    private String comuna;
+
     @JsonProperty("fecha_creacion")
     private LocalDateTime fechaCreacion;
 
@@ -32,6 +38,9 @@ public class RefugioUbicacionDTO {
         dto.longitud = refugio.getLongitud();
         dto.telefono = refugio.getNumeroContacto();
         dto.email = refugio.getEmail();
+        dto.foto = refugio.getFoto();
+        dto.capacidad = refugio.getCapacidad();
+        dto.comuna = refugio.getComuna();
         dto.fechaCreacion = refugio.getFechaCreacion();
         return dto;
     }
@@ -45,5 +54,8 @@ public class RefugioUbicacionDTO {
     public Double getLongitud() { return longitud; }
     public String getTelefono() { return telefono; }
     public String getEmail() { return email; }
+    public String getFoto() { return foto; }
+    public Integer getCapacidad() { return capacidad; }
+    public String getComuna() { return comuna; }
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
 }
