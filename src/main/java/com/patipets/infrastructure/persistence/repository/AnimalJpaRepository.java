@@ -15,6 +15,8 @@ public interface AnimalJpaRepository extends JpaRepository<AnimalEntity, Long>,
 
     List<AnimalEntity> findByRefugioId(Long refugioId);
 
+    List<AnimalEntity> findByRefugioIdAndEstadoAdopcion(Long refugioId, EstadoAnimal estadoAdopcion);
+
     @Query("SELECT a FROM AnimalEntity a WHERE a.estadoAdopcion = 'DISPONIBLE' " +
            "AND (:especie IS NULL OR a.especie = :especie) " +
            "AND (:raza IS NULL OR a.raza = :raza) " +

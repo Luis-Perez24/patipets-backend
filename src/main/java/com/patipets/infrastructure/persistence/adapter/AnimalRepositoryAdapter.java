@@ -46,6 +46,12 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
     }
 
     @Override
+    public List<Animal> findByRefugioIdAndEstado(Long refugioId, String estado) {
+        return jpaRepository.findByRefugioIdAndEstadoAdopcion(refugioId, EstadoAnimal.valueOf(estado))
+                .stream().map(this::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
     public Animal save(Animal animal) {
         AnimalEntity entity = toEntity(animal);
         AnimalEntity saved = jpaRepository.save(entity);

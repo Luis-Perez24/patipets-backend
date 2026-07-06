@@ -1,13 +1,18 @@
 package com.patipets.core.application.services;
 
 import com.patipets.core.application.events.SolicitudRefugioCambiadaEvent;
+import com.patipets.core.application.ports.output.AnimalRepositoryPort;
 import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
+import com.patipets.core.application.ports.output.SolicitudAdopcionRepositoryPort;
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
+import com.patipets.core.application.useCase.RefugioHistorial;
+import com.patipets.core.domain.enums.EstadoAnimal;
 import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.enums.Rol;
+import com.patipets.core.domain.models.Animal;
 import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.Usuario;
@@ -20,15 +25,23 @@ import java.util.Optional;
 public class GestionRefugioService implements GestionRefugioUseCase {
 
     private final RefugioRepositoryPort refugioRepository;
+    private final AnimalRepositoryPort animalRepository;
+    private final SolicitudAdopcionRepositoryPort solicitudRepository;
     private final ImageStoragePort imageStoragePort;
     private final UsuarioRepositoryPort usuarioRepository;
     private final EventPublisherPort eventPublisher;
     private final GeocodingService geocodingService;
 
-    public GestionRefugioService(RefugioRepositoryPort refugioRepository, ImageStoragePort imageStoragePort,
-                                  UsuarioRepositoryPort usuarioRepository, EventPublisherPort eventPublisher,
+    public GestionRefugioService(RefugioRepositoryPort refugioRepository,
+                                  AnimalRepositoryPort animalRepository,
+                                  SolicitudAdopcionRepositoryPort solicitudRepository,
+                                  ImageStoragePort imageStoragePort,
+                                  UsuarioRepositoryPort usuarioRepository,
+                                  EventPublisherPort eventPublisher,
                                   GeocodingService geocodingService) {
         this.refugioRepository = refugioRepository;
+        this.animalRepository = animalRepository;
+        this.solicitudRepository = solicitudRepository;
         this.imageStoragePort = imageStoragePort;
         this.usuarioRepository = usuarioRepository;
         this.eventPublisher = eventPublisher;
@@ -145,5 +158,19 @@ public class GestionRefugioService implements GestionRefugioUseCase {
     @Override
     public PaginatedResult<Refugio> listarTodos(String estado, String region, String busqueda, int page, int size) {
         return refugioRepository.findAll(estado, region, busqueda, page, size);
+    }
+
+    @Override
+    public RefugioHistorial obtenerHistorial(Long refugioId) {
+        Refugio refugio = refugioRepository.findById(refugioId)
+                .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + refugioId));
+        if (refugio.getEstado() != EstadoRefugio.APROBADO) {
+            throw new IllegalArgumentException("El refugio no está aprobado");
+        }
+        long totalAnimales = animalRepository.countByRefugioId(refugioId);
+        long totalAdopciones = solicitudRepository.countByRefugioIdAndEstado(refugioId, "COMPLETADA");
+        List<Animal> animalesAdoptados = animalRepository.findByRefugioIdAndEstado(refugioId, EstadoAnimal.ADOPTADO.name());
+        return new RefugioHistorial(refugio.getId(), refugio.getNombre(),
+                totalAnimales, totalAdopciones, animalesAdoptados);
     }
 }

@@ -11,6 +11,7 @@ public interface AnimalRepositoryPort {
     PaginatedResult<Animal> findAll(String estado, Long refugioId, String especie, String busqueda, int page, int size);
     Optional<Animal> findById(Long id);
     List<Animal> findByRefugioId(Long refugioId);
+    List<Animal> findByRefugioIdAndEstado(Long refugioId, String estado);
     Animal save(Animal animal);
     void deleteById(Long id);
     long countDisponibles();

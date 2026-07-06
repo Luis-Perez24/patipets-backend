@@ -143,6 +143,8 @@ public class UseCaseConfig {
                                                        GeocodingService geocodingService) {
         return new GestionRefugioService(
                 new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
+                new AnimalRepositoryAdapter(animalJpaRepository),
+                new SolicitudAdopcionRepositoryAdapter(solicitudJpaRepository),
                 imageStoragePort,
                 new UsuarioRepositoryAdapter(usuarioJpaRepository),
                 eventPublisher,

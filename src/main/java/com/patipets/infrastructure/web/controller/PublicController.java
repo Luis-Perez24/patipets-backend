@@ -4,12 +4,14 @@ import com.patipets.core.application.useCase.ConsultarCatalogoPublicoUseCase;
 import com.patipets.core.application.useCase.ConsultarEstadisticasDashboardUseCase;
 import com.patipets.core.application.useCase.ConsultarMapaRefugiosUseCase;
 import com.patipets.core.application.useCase.GestionRefugioUseCase;
+import com.patipets.core.application.useCase.RefugioHistorial;
 import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.models.Animal;
 import com.patipets.core.domain.models.Refugio;
 import com.patipets.infrastructure.web.dto.AnimalResponseDTO;
 import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.EstadisticaDashboardResponseDTO;
+import com.patipets.infrastructure.web.dto.RefugioHistorialResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioUbicacionDTO;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,24 @@ public class PublicController {
         this.mapaUseCase = mapaUseCase;
         this.dashboardUseCase = dashboardUseCase;
         this.gestionRefugioUseCase = gestionRefugioUseCase;
+    }
+
+    @GetMapping("/refugios/{id}/historial")
+    public ResponseEntity<ApiResponseDTO<RefugioHistorialResponseDTO>> obtenerHistorial(@PathVariable Long id) {
+        return gestionRefugioUseCase.obtenerPorId(id)
+                .filter(refugio -> refugio.getEstado() == EstadoRefugio.APROBADO)
+                .map(refugio -> {
+                    RefugioHistorial historial = gestionRefugioUseCase.obtenerHistorial(id);
+                    List<AnimalResponseDTO> animalesDto = historial.getAnimalesAdoptados().stream()
+                            .map(AnimalResponseDTO::fromDomain)
+                            .collect(Collectors.toList());
+                    RefugioHistorialResponseDTO dto = RefugioHistorialResponseDTO.of(
+                            historial.getRefugioId(), historial.getRefugioNombre(),
+                            historial.getTotalAnimales(), historial.getTotalAdopciones(),
+                            animalesDto);
+                    return ResponseEntity.ok(ApiResponseDTO.ok(dto));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/animales")

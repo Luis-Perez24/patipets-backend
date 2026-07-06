@@ -1,5 +1,6 @@
 package com.patipets.core.application.useCase;
 
+import com.patipets.core.domain.models.Animal;
 import com.patipets.core.domain.models.PaginatedResult;
 import com.patipets.core.domain.models.Refugio;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,4 +20,5 @@ public interface GestionRefugioUseCase {
     Optional<Refugio> obtenerPorId(Long id);
     List<Refugio> listarMisRefugios(Long usuarioId);
     PaginatedResult<Refugio> listarTodos(String estado, String region, String busqueda, int page, int size);
+    RefugioHistorial obtenerHistorial(Long refugioId);
 }
