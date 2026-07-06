@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/alertas/refugio/**").permitAll()
                 .requestMatchers("/api/v1/alertas/activas").permitAll()
+                .requestMatchers("/api/v1/refugios/*/animales").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
