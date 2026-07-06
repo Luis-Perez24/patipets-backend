@@ -2,13 +2,17 @@ package com.patipets.core.application.services;
 
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.PasswordEncoderPort;
+import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.useCase.AuthUseCase;
+import com.patipets.core.domain.enums.EstadoRefugio;
 import com.patipets.core.domain.enums.Rol;
+import com.patipets.core.domain.models.Refugio;
 import com.patipets.core.domain.models.Usuario;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public class AuthService implements AuthUseCase {
@@ -16,13 +20,31 @@ public class AuthService implements AuthUseCase {
     private final UsuarioRepositoryPort usuarioRepository;
     private final PasswordEncoderPort passwordEncoder;
     private final ImageStoragePort imageStoragePort;
+    private final RefugioRepositoryPort refugioRepository;
 
     public AuthService(UsuarioRepositoryPort usuarioRepository,
                          PasswordEncoderPort passwordEncoder,
-                         ImageStoragePort imageStoragePort) {
+                         ImageStoragePort imageStoragePort,
+                         RefugioRepositoryPort refugioRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.imageStoragePort = imageStoragePort;
+        this.refugioRepository = refugioRepository;
+    }
+
+    private void enriquecerConRefugio(Usuario usuario) {
+        if (refugioRepository == null || usuario == null || usuario.getId() == null) {
+            return;
+        }
+        List<Refugio> refugios = refugioRepository.findByUsuario(usuario.getId());
+        if (refugios == null || refugios.isEmpty()) {
+            return;
+        }
+        Refugio seleccionado = refugios.stream()
+                .filter(r -> r.getEstado() == EstadoRefugio.APROBADO)
+                .findFirst()
+                .orElse(refugios.get(0));
+        usuario.setRefugioId(seleccionado.getId());
     }
 
 
@@ -39,7 +61,9 @@ public class AuthService implements AuthUseCase {
                 Rol.CIUDADANO, null, numeroContacto, null,
                 region, comuna, direccion, null, true, LocalDateTime.now()
         );
-        return usuarioRepository.save(nuevo);
+        Usuario guardado = usuarioRepository.save(nuevo);
+        enriquecerConRefugio(guardado);
+        return guardado;
     }
 
     @Override
@@ -52,6 +76,7 @@ public class AuthService implements AuthUseCase {
         if (!passwordEncoder.matches(password, usuario.getPassword())) {
             throw new IllegalArgumentException("Credenciales inválidas");
         }
+        enriquecerConRefugio(usuario);
         return usuario;
     }
 
@@ -71,7 +96,9 @@ public class AuthService implements AuthUseCase {
                     usuario.getRegion(), usuario.getComuna(), usuario.getDireccion(), usuario.getBiografia(),
                     usuario.isActivo(), usuario.getFechaRegistro()
             );
-            return usuarioRepository.save(actualizado);
+            Usuario guardado = usuarioRepository.save(actualizado);
+            enriquecerConRefugio(guardado);
+            return guardado;
         } catch (IllegalArgumentException e) {
             if (e.getMessage() != null && e.getMessage().contains("No puedes")) throw e;
             throw new IllegalArgumentException("Rol inválido: " + nuevoRol);
@@ -93,7 +120,9 @@ public class AuthService implements AuthUseCase {
                 numeroContacto, usuario.getUbicacion(), region, comuna, direccion, nuevaBiografia,
                 usuario.isActivo(), usuario.getFechaRegistro()
         );
-        return usuarioRepository.save(actualizado);
+        Usuario guardado = usuarioRepository.save(actualizado);
+        enriquecerConRefugio(guardado);
+        return guardado;
     }
 
     @Override
@@ -113,11 +142,15 @@ public class AuthService implements AuthUseCase {
         if (fotoAnterior != null) {
             imageStoragePort.delete(fotoAnterior);
         }
+        enriquecerConRefugio(guardado);
         return guardado;
     }
 
     @Override
     public Optional<Usuario> obtenerPorId(Long id) {
-        return usuarioRepository.findById(id);
+        return usuarioRepository.findById(id).map(usuario -> {
+            enriquecerConRefugio(usuario);
+            return usuario;
+        });
     }
 }

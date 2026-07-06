@@ -31,6 +31,9 @@ public class UsuarioResponseDTO {
     @JsonProperty("fecha_registro")
     private String fechaRegistro;
 
+    @JsonProperty("refugio_id")
+    private Long refugioId;
+
     private UsuarioResponseDTO() {}
 
     public static UsuarioResponseDTO fromDomain(Usuario usuario) {
@@ -48,6 +51,7 @@ public class UsuarioResponseDTO {
         dto.biografia = usuario.getBiografia();
         dto.activo = usuario.isActivo();
         dto.fechaRegistro = usuario.getFechaRegistro().toString();
+        dto.refugioId = usuario.getRefugioId();
         return dto;
     }
 
@@ -64,4 +68,5 @@ public class UsuarioResponseDTO {
     public String getBiografia() { return biografia; }
     public boolean isActivo() { return activo; }
     public String getFechaRegistro() { return fechaRegistro; }
+    public Long getRefugioId() { return refugioId; }
 }

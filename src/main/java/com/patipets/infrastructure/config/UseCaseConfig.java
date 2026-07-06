@@ -133,7 +133,8 @@ public class UseCaseConfig {
     @Bean
     public AuthUseCase authUseCase(PasswordEncoderPort passwordEncoder, ImageStoragePort imageStoragePort) {
         return new AuthService(
-                new UsuarioRepositoryAdapter(usuarioJpaRepository), passwordEncoder, imageStoragePort);
+                new UsuarioRepositoryAdapter(usuarioJpaRepository), passwordEncoder, imageStoragePort,
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository));
     }
 
     @Bean

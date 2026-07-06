@@ -18,6 +18,7 @@ public class Usuario {
     private final String biografia;
     private final boolean activo;
     private final LocalDateTime fechaRegistro;
+    private Long refugioId;
 
     public Usuario(Long id, String nombre, String email, String password,
                    Rol rol, String fotoPerfil, String numeroContacto,
@@ -53,4 +54,6 @@ public class Usuario {
     public String getBiografia() { return biografia; }
     public boolean isActivo() { return activo; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
+    public Long getRefugioId() { return refugioId; }
+    public void setRefugioId(Long refugioId) { this.refugioId = refugioId; }
 }
