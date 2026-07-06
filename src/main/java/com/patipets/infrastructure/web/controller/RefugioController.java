@@ -11,6 +11,7 @@ import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalRequestDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalUpdateRequestDTO;
+import com.patipets.infrastructure.web.dto.request.RefugioUpdateRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -116,6 +117,36 @@ public class RefugioController {
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(ApiResponseDTO.error("No se puede eliminar: el animal tiene postulaciones asociadas"));
+        }
+    }
+
+    @PutMapping(value = "/{refugioId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> actualizarRefugio(
+            Authentication authentication,
+            @PathVariable Long refugioId,
+            @Valid @RequestPart("datos") RefugioUpdateRequestDTO request,
+            @RequestPart(value = "archivo", required = false) MultipartFile archivo) {
+        try {
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
+            Refugio refugio = gestionRefugioUseCase.actualizar(
+                    refugioId,
+                    request.getNombre(),
+                    request.getDescripcion(),
+                    request.getDireccion(),
+                    request.getRegion(),
+                    request.getComuna(),
+                    request.getCapacidad(),
+                    request.getEmail(),
+                    request.getNumeroContacto(),
+                    archivo);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Refugio actualizado",
+                    RefugioResponseDTO.fromDomain(refugio)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponseDTO.error("Error al procesar la imagen: " + e.getMessage()));
         }
     }
 

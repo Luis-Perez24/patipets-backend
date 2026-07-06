@@ -13,6 +13,9 @@ public interface GestionRefugioUseCase {
                       Double latitud, Double longitud, Integer capacidad,
                       String email, String numeroContacto, Long usuarioId,
                       MultipartFile foto) throws IOException;
+    Refugio actualizar(Long id, String nombre, String descripcion, String direccion,
+                      String region, String comuna, Integer capacidad,
+                      String email, String numeroContacto, MultipartFile foto) throws IOException;
     Refugio aprobar(Long id);
     Refugio rechazar(Long id);
     List<Refugio> listarPendientes();

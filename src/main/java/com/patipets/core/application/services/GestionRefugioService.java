@@ -53,6 +53,14 @@ public class GestionRefugioService implements GestionRefugioUseCase {
                               Double latitud, Double longitud, Integer capacidad,
                               String email, String numeroContacto, Long usuarioId,
                               MultipartFile foto) throws IOException {
+        if (usuarioId == null) {
+            throw new IllegalArgumentException("Usuario no autenticado");
+        }
+        List<Refugio> existentes = refugioRepository.findByUsuario(usuarioId);
+        if (!existentes.isEmpty()) {
+            throw new IllegalStateException("Ya tienes un refugio registrado. Solo se permite un refugio por usuario.");
+        }
+
         String fotoUrl = (foto != null && !foto.isEmpty()) ? imageStoragePort.upload(foto) : null;
 
         Double finalLatitud = latitud;
@@ -72,6 +80,71 @@ public class GestionRefugioService implements GestionRefugioUseCase {
         );
         Refugio guardado = refugioRepository.save(nuevo);
         refugioRepository.vincularUsuario(usuarioId, guardado.getId());
+        return guardado;
+    }
+
+    @Override
+    public Refugio actualizar(Long id, String nombre, String descripcion, String direccion,
+                              String region, String comuna, Integer capacidad,
+                              String email, String numeroContacto, MultipartFile foto) throws IOException {
+        Refugio existente = refugioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + id));
+        if (existente.getEstado() != EstadoRefugio.APROBADO) {
+            throw new IllegalStateException(
+                    "Solo se puede editar un refugio aprobado (estado actual: " + existente.getEstado() + ")");
+        }
+
+        String nuevaDireccion = direccion != null ? direccion : existente.getDireccion();
+        String nuevaRegion = region != null ? region : existente.getRegion();
+        String nuevaComuna = comuna != null ? comuna : existente.getComuna();
+        boolean direccionCambio = (direccion != null && !direccion.equals(existente.getDireccion()))
+                || (region != null && !region.equals(existente.getRegion()))
+                || (comuna != null && !comuna.equals(existente.getComuna()));
+
+        Double nuevaLat = existente.getLatitud();
+        Double nuevaLon = existente.getLongitud();
+        if (direccionCambio) {
+            double[] resolved = geocodingService.geocode(nuevaDireccion, nuevaComuna, nuevaRegion)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No se pudo geolocalizar la nueva dirección. Verifica región, comuna y dirección."));
+            nuevaLat = resolved[0];
+            nuevaLon = resolved[1];
+        }
+
+        String fotoAnterior = existente.getFoto();
+        String fotoUrl = fotoAnterior;
+        if (foto != null && !foto.isEmpty()) {
+            fotoUrl = imageStoragePort.upload(foto);
+        }
+
+        Refugio actualizado = new Refugio(
+                existente.getId(),
+                nombre != null ? nombre : existente.getNombre(),
+                descripcion != null ? descripcion : existente.getDescripcion(),
+                nuevaDireccion,
+                nuevaRegion,
+                nuevaComuna,
+                nuevaLat, nuevaLon,
+                capacidad != null ? capacidad : existente.getCapacidad(),
+                email != null ? email : existente.getEmail(),
+                numeroContacto != null ? numeroContacto : existente.getNumeroContacto(),
+                existente.getEstado(),
+                fotoUrl,
+                existente.getUsuarioId(),
+                existente.getUsuarioNombre(),
+                existente.getFechaCreacion()
+        );
+
+        Refugio guardado = refugioRepository.save(actualizado);
+
+        if (foto != null && !foto.isEmpty() && fotoAnterior != null && !fotoAnterior.equals(fotoUrl)) {
+            try {
+                imageStoragePort.delete(fotoAnterior);
+            } catch (RuntimeException ignored) {
+                // best-effort
+            }
+        }
+
         return guardado;
     }
 
