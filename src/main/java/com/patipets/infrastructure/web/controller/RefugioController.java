@@ -76,6 +76,19 @@ public class RefugioController {
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
 
+    @DeleteMapping("/solicitudes/{id}")
+    public ResponseEntity<ApiResponseDTO<Void>> cancelarSolicitud(
+            Authentication authentication,
+            @PathVariable Long id) {
+        try {
+            Usuario usuario = (Usuario) authentication.getPrincipal();
+            gestionRefugioUseCase.cancelarPorUsuario(id, usuario.getId());
+            return ResponseEntity.ok(ApiResponseDTO.ok("Solicitud cancelada", null));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
     @PostMapping(value = "/{refugioId}/animales", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
     public ResponseEntity<ApiResponseDTO<AnimalResponseDTO>> crearAnimal(
@@ -160,6 +173,8 @@ public class RefugioController {
                     request.getDireccion(),
                     request.getRegion(),
                     request.getComuna(),
+                    request.getLatitud(),
+                    request.getLongitud(),
                     request.getCapacidad(),
                     request.getEmail(),
                     request.getNumeroContacto(),

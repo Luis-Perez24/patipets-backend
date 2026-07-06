@@ -66,6 +66,11 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
     }
 
     @Override
+    public int marcarTodasLeidas(Long usuarioId) {
+        return notificacionRepository.marcarTodasLeidas(usuarioId);
+    }
+
+    @Override
     public void procesarAlertaUrgente(Long alertaId, Long refugioId, String titulo, String descripcion, String nivelUrgencia) {
         Refugio refugio = refugioRepository.findById(refugioId).orElse(null);
         String nombreRefugio = refugio != null ? refugio.getNombre() : "Un refugio";
@@ -145,6 +150,25 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
     }
 
     @Override
+    public void procesarAceptacionInscripcionVoluntariado(Long inscripcionId, Long voluntarioId,
+                                                            Long alertaId, String alertaTitulo) {
+        String titulo = "Inscripción aceptada";
+        String mensaje = String.format("El refugio aceptó tu inscripción a la convocatoria \"%s\".", alertaTitulo);
+        notificar(voluntarioId, TipoNotificacion.INSCRIPCION_VOLUNTARIADO_ACEPTADA, titulo, mensaje, inscripcionId);
+    }
+
+    @Override
+    public void procesarRechazoInscripcionVoluntariado(Long inscripcionId, Long voluntarioId,
+                                                         Long alertaId, String alertaTitulo, String motivo) {
+        String titulo = "Inscripción rechazada";
+        String mensaje = String.format(
+                "El refugio rechazó tu inscripción a la convocatoria \"%s\".%s",
+                alertaTitulo,
+                (motivo != null && !motivo.isBlank()) ? " Motivo: " + motivo : "");
+        notificar(voluntarioId, TipoNotificacion.INSCRIPCION_VOLUNTARIADO_RECHAZADA, titulo, mensaje, inscripcionId);
+    }
+
+    @Override
     public void procesarCancelacionApadrinamientoPorRefugio(Long apadrinamientoId, Long padrinoId,
                                                               Long animalId, String animalNombre, String motivo) {
         String titulo = "Apadrinamiento cancelado por el refugio";
@@ -153,6 +177,14 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
                 animalNombre,
                 (motivo != null && !motivo.isBlank()) ? " Motivo: " + motivo : "");
         notificar(padrinoId, TipoNotificacion.APADRINAMIENTO_CANCELADO_POR_REFUGIO, titulo, mensaje, apadrinamientoId);
+    }
+
+    @Override
+    public void procesarCancelacionApadrinamientoPorPadrino(Long apadrinamientoId, Long refugioId, String motivo) {
+        String titulo = "Apadrinamiento cancelado por el padrino";
+        String sufijo = (motivo != null && !motivo.isBlank()) ? " Motivo: " + motivo : "";
+        String mensaje = "Un padrino canceló su apadrinamiento." + sufijo;
+        notificar(refugioId, TipoNotificacion.APADRINAMIENTO_CANCELADO_POR_PADRINO, titulo, mensaje, apadrinamientoId);
     }
 
     private void notificar(Long usuarioId, TipoNotificacion tipo, String titulo, String mensaje, Long entidadRelacionadaId) {

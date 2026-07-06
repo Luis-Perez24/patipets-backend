@@ -85,8 +85,9 @@ public class GestionRefugioService implements GestionRefugioUseCase {
 
     @Override
     public Refugio actualizar(Long id, String nombre, String descripcion, String direccion,
-                              String region, String comuna, Integer capacidad,
-                              String email, String numeroContacto, MultipartFile foto) throws IOException {
+                              String region, String comuna, Double latitud, Double longitud,
+                              Integer capacidad, String email, String numeroContacto,
+                              MultipartFile foto) throws IOException {
         Refugio existente = refugioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + id));
         if (existente.getEstado() != EstadoRefugio.APROBADO) {
@@ -103,7 +104,10 @@ public class GestionRefugioService implements GestionRefugioUseCase {
 
         Double nuevaLat = existente.getLatitud();
         Double nuevaLon = existente.getLongitud();
-        if (direccionCambio) {
+        if (latitud != null && longitud != null) {
+            nuevaLat = latitud;
+            nuevaLon = longitud;
+        } else if (direccionCambio) {
             double[] resolved = geocodingService.geocode(nuevaDireccion, nuevaComuna, nuevaRegion)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "No se pudo geolocalizar la nueva dirección. Verifica región, comuna y dirección."));
@@ -177,11 +181,28 @@ public class GestionRefugioService implements GestionRefugioUseCase {
         if (refugio.getEstado() != EstadoRefugio.PENDIENTE) {
             throw new IllegalStateException("El refugio no está en estado PENDIENTE");
         }
+        return cambiarEstadoPendiente(refugio, EstadoRefugio.RECHAZADO, id);
+    }
+
+    @Override
+    public Refugio cancelarPorUsuario(Long id, Long usuarioId) {
+        Refugio refugio = refugioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + id));
+        if (refugio.getUsuarioId() == null || !refugio.getUsuarioId().equals(usuarioId)) {
+            throw new IllegalArgumentException("No puedes cancelar una solicitud que no te pertenece");
+        }
+        if (refugio.getEstado() != EstadoRefugio.PENDIENTE) {
+            throw new IllegalStateException("La solicitud no está en estado PENDIENTE");
+        }
+        return cambiarEstadoPendiente(refugio, EstadoRefugio.RECHAZADO, id);
+    }
+
+    private Refugio cambiarEstadoPendiente(Refugio refugio, EstadoRefugio nuevoEstado, Long id) {
         Refugio actualizado = new Refugio(
                 refugio.getId(), refugio.getNombre(), refugio.getDescripcion(), refugio.getDireccion(),
                 refugio.getRegion(), refugio.getComuna(), refugio.getLatitud(),
                 refugio.getLongitud(), refugio.getCapacidad(),
-                refugio.getEmail(), refugio.getNumeroContacto(), EstadoRefugio.RECHAZADO,
+                refugio.getEmail(), refugio.getNumeroContacto(), nuevoEstado,
                 refugio.getFoto(), refugio.getUsuarioId(), refugio.getUsuarioNombre(),
                 refugio.getFechaCreacion()
         );

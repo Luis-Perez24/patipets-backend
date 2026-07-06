@@ -19,4 +19,7 @@ public interface GestionAlertaUseCase {
     List<RespuestaAlerta> listarRespuestasPorAlerta(Long alertaId);
     List<RespuestaAlerta> listarRespuestasPorRefugio(Long refugioId);
     RespuestaAlerta cancelarRespuestaPorRefugio(Long respuestaId, Long refugioId, String motivo);
+    RespuestaAlerta aceptarRespuesta(Long respuestaId, Long refugioId);
+    RespuestaAlerta rechazarRespuesta(Long respuestaId, Long refugioId, String motivo);
+    RespuestaAlerta cancelarRespuestaPorVoluntario(Long respuestaId, Long usuarioId, String motivo);
 }

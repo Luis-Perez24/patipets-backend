@@ -108,16 +108,27 @@ public class ApadrinamientoController {
     @PreAuthorize("hasAnyRole('PADRINO', 'ADMIN')")
     public ResponseEntity<ApiResponseDTO<ApadrinamientoResponseDTO>> cancelar(
             Authentication authentication,
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
         try {
             Usuario usuario = (Usuario) authentication.getPrincipal();
-            Apadrinamiento apadrinamiento = apadrinamientoUseCase.cancelar(id, usuario.getId());
+            String motivo = body != null ? body.get("motivo") : null;
+            Apadrinamiento apadrinamiento = apadrinamientoUseCase.cancelarPorPadrino(id, usuario.getId(), motivo);
             return ResponseEntity.ok(ApiResponseDTO.ok("Apadrinamiento cancelado",
                     enriquecer(ApadrinamientoResponseDTO.fromDomain(apadrinamiento))));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponseDTO.error(e.getMessage()));
         }
+    }
+
+    @PutMapping("/{id}/cancelar-padrino")
+    @PreAuthorize("hasAnyRole('PADRINO', 'ADMIN')")
+    public ResponseEntity<ApiResponseDTO<ApadrinamientoResponseDTO>> cancelarPadrinoAlias(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        return cancelar(authentication, id, body);
     }
 
     @PutMapping("/{id}/cancelar-refugio")

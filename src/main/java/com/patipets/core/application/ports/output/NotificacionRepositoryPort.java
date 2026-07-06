@@ -9,4 +9,5 @@ public interface NotificacionRepositoryPort {
     Optional<Notificacion> findById(Long id);
     List<Notificacion> findByUsuarioId(Long usuarioId, int page, int size);
     long countByUsuarioIdAndLeidaFalse(Long usuarioId);
+    int marcarTodasLeidas(Long usuarioId);
 }

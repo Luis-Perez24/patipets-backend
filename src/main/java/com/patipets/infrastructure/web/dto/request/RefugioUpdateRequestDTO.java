@@ -28,6 +28,9 @@ public class RefugioUpdateRequestDTO {
     @Size(max = 50, message = "no puede superar los 50 caracteres")
     private String numeroContacto;
 
+    private Double latitud;
+    private Double longitud;
+
     public RefugioUpdateRequestDTO() {}
 
     public String getNombre() { return nombre; }
@@ -53,4 +56,10 @@ public class RefugioUpdateRequestDTO {
 
     public String getNumeroContacto() { return numeroContacto; }
     public void setNumeroContacto(String numeroContacto) { this.numeroContacto = numeroContacto; }
+
+    public Double getLatitud() { return latitud; }
+    public void setLatitud(Double latitud) { this.latitud = latitud; }
+
+    public Double getLongitud() { return longitud; }
+    public void setLongitud(Double longitud) { this.longitud = longitud; }
 }

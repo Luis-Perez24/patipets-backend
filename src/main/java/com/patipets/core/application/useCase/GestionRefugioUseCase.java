@@ -14,10 +14,12 @@ public interface GestionRefugioUseCase {
                       String email, String numeroContacto, Long usuarioId,
                       MultipartFile foto) throws IOException;
     Refugio actualizar(Long id, String nombre, String descripcion, String direccion,
-                      String region, String comuna, Integer capacidad,
-                      String email, String numeroContacto, MultipartFile foto) throws IOException;
+                      String region, String comuna, Double latitud, Double longitud,
+                      Integer capacidad, String email, String numeroContacto,
+                      MultipartFile foto) throws IOException;
     Refugio aprobar(Long id);
     Refugio rechazar(Long id);
+    Refugio cancelarPorUsuario(Long id, Long usuarioId);
     List<Refugio> listarPendientes();
     boolean perteneceAUsuario(Long refugioId, Long usuarioId);
     Optional<Refugio> obtenerPorId(Long id);

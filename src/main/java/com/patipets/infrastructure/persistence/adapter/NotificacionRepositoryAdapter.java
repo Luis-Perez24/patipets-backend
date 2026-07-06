@@ -43,6 +43,11 @@ public class NotificacionRepositoryAdapter implements NotificacionRepositoryPort
         return jpaRepository.countByUsuarioIdAndLeidaFalse(usuarioId);
     }
 
+    @Override
+    public int marcarTodasLeidas(Long usuarioId) {
+        return jpaRepository.marcarTodasLeidas(usuarioId, java.time.LocalDateTime.now());
+    }
+
     private Notificacion toDomain(NotificacionEntity entity) {
         return new Notificacion(
                 entity.getId(), entity.getUsuarioId(), TipoNotificacion.valueOf(entity.getTipo()),

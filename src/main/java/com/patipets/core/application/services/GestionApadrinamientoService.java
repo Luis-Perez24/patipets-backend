@@ -1,5 +1,6 @@
 package com.patipets.core.application.services;
 
+import com.patipets.core.application.events.ApadrinamientoCanceladoPorPadrinoEvent;
 import com.patipets.core.application.events.ApadrinamientoCanceladoPorRefugioEvent;
 import com.patipets.core.application.ports.output.AnimalRepositoryPort;
 import com.patipets.core.application.ports.output.ApadrinamientoRepositoryPort;
@@ -60,6 +61,11 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
 
     @Override
     public Apadrinamiento cancelar(Long id, Long usuarioId) {
+        return cancelarPorPadrino(id, usuarioId, null);
+    }
+
+    @Override
+    public Apadrinamiento cancelarPorPadrino(Long id, Long usuarioId, String motivo) {
         Apadrinamiento apadrinamiento = apadrinamientoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Apadrinamiento no encontrado: " + id));
         if (!apadrinamiento.isActivo()) {
@@ -68,13 +74,19 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
         if (!apadrinamiento.getPadrinoId().equals(usuarioId)) {
             throw new IllegalArgumentException("No puedes cancelar un apadrinamiento que no te pertenece");
         }
+        String nombreAnimal = animalRepository.findById(apadrinamiento.getAnimalId())
+                .map(Animal::getNombre).orElse("el animal");
         Apadrinamiento cancelado = new Apadrinamiento(
                 id, apadrinamiento.getPadrinoId(), apadrinamiento.getAnimalId(),
                 apadrinamiento.getRefugioId(), apadrinamiento.getTipoApoyo(),
                 apadrinamiento.getCompromiso(),
                 apadrinamiento.getFechaInicio(), false
         );
-        return apadrinamientoRepository.save(cancelado);
+        Apadrinamiento guardado = apadrinamientoRepository.save(cancelado);
+        eventPublisher.publicar(new ApadrinamientoCanceladoPorPadrinoEvent(
+                guardado.getId(), guardado.getAnimalId(), guardado.getRefugioId(),
+                guardado.getPadrinoId(), nombreAnimal, motivo));
+        return guardado;
     }
 
     @Override

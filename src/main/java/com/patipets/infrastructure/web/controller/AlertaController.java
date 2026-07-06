@@ -207,6 +207,67 @@ public class AlertaController {
         }
     }
 
+    @PutMapping("/respuestas/{id}/aceptar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<RespuestaAlertaResponseDTO>> aceptarRespuesta(
+            Authentication authentication,
+            @PathVariable Long id) {
+        try {
+            RespuestaAlerta respuesta = respuestaRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Inscripción no encontrada: " + id));
+            Alerta alerta = alertaRepository.findById(respuesta.getAlertaId())
+                    .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + respuesta.getAlertaId()));
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), alerta.getRefugioId());
+            RespuestaAlerta aceptada = gestionAlertaUseCase.aceptarRespuesta(id, alerta.getRefugioId());
+            return ResponseEntity.ok(ApiResponseDTO.ok("Inscripción aceptada",
+                    enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(aceptada))));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/respuestas/{id}/rechazar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'REFUGIO')")
+    public ResponseEntity<ApiResponseDTO<RespuestaAlertaResponseDTO>> rechazarRespuesta(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        try {
+            RespuestaAlerta respuesta = respuestaRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Inscripción no encontrada: " + id));
+            Alerta alerta = alertaRepository.findById(respuesta.getAlertaId())
+                    .orElseThrow(() -> new IllegalArgumentException("Alerta no encontrada: " + respuesta.getAlertaId()));
+            refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), alerta.getRefugioId());
+            String motivo = body != null ? body.get("motivo") : null;
+            RespuestaAlerta rechazada = gestionAlertaUseCase.rechazarRespuesta(id, alerta.getRefugioId(), motivo);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Inscripción rechazada",
+                    enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(rechazada))));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @PutMapping("/respuestas/{id}/cancelar-voluntario")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponseDTO<RespuestaAlertaResponseDTO>> cancelarPorVoluntario(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        try {
+            Usuario usuario = (Usuario) authentication.getPrincipal();
+            String motivo = body != null ? body.get("motivo") : null;
+            RespuestaAlerta cancelada = gestionAlertaUseCase.cancelarRespuestaPorVoluntario(id, usuario.getId(), motivo);
+            return ResponseEntity.ok(ApiResponseDTO.ok("Inscripción cancelada",
+                    enriquecerRespuesta(RespuestaAlertaResponseDTO.fromDomain(cancelada))));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+        }
+    }
+
     private AlertaResponseDTO enriquecerAlerta(AlertaResponseDTO dto) {
         refugioRepository.findById(dto.getRefugioId())
                 .ifPresent(r -> {

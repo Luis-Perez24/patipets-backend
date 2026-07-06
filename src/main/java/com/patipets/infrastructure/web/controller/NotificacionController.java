@@ -54,4 +54,11 @@ public class NotificacionController {
             return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
         }
     }
+
+    @PutMapping("/leer-todas")
+    public ResponseEntity<ApiResponseDTO<Integer>> marcarTodasLeidas(Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        int count = gestionNotificacionUseCase.marcarTodasLeidas(usuario.getId());
+        return ResponseEntity.ok(ApiResponseDTO.ok("Notificaciones marcadas como leídas", count));
+    }
 }
