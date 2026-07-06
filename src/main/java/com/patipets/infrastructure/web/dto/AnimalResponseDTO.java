@@ -42,6 +42,9 @@ public class AnimalResponseDTO {
     @JsonProperty("refugio_region")
     private String refugioRegion;
 
+    @JsonProperty("refugio_comuna")
+    private String refugioComuna;
+
     private List<String> fotos;
 
     @JsonProperty("fecha_registro")
@@ -81,6 +84,7 @@ public class AnimalResponseDTO {
     public String getRefugioEmail() { return refugioEmail; }
     public String getRefugioDireccion() { return refugioDireccion; }
     public String getRefugioRegion() { return refugioRegion; }
+    public String getRefugioComuna() { return refugioComuna; }
     public List<String> getFotos() { return fotos; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
 
@@ -89,4 +93,5 @@ public class AnimalResponseDTO {
     public void setRefugioEmail(String refugioEmail) { this.refugioEmail = refugioEmail; }
     public void setRefugioDireccion(String refugioDireccion) { this.refugioDireccion = refugioDireccion; }
     public void setRefugioRegion(String refugioRegion) { this.refugioRegion = refugioRegion; }
+    public void setRefugioComuna(String refugioComuna) { this.refugioComuna = refugioComuna; }
 }

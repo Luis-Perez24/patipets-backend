@@ -142,5 +142,6 @@ public class PublicController {
         dto.setRefugioEmail(refugio.getEmail());
         dto.setRefugioDireccion(refugio.getDireccion());
         dto.setRefugioRegion(refugio.getRegion());
+        dto.setRefugioComuna(refugio.getComuna());
     }
 }
