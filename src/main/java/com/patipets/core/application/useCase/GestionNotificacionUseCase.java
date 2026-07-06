@@ -12,4 +12,6 @@ public interface GestionNotificacionUseCase {
     void procesarCambioEstadoRefugio(Long refugioId, Long usuarioId, String nombreRefugio, String nuevoEstado);
     void procesarCancelacionInscripcionVoluntariado(Long inscripcionId, Long voluntarioId,
                                                     Long alertaId, String alertaTitulo, String motivo);
+    void procesarCancelacionApadrinamientoPorRefugio(Long apadrinamientoId, Long padrinoId,
+                                                       Long animalId, String animalNombre, String motivo);
 }

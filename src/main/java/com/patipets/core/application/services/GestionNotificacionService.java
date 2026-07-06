@@ -144,6 +144,17 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
         notificar(voluntarioId, TipoNotificacion.INSCRIPCION_VOLUNTARIADO_CANCELADA, titulo, mensaje, inscripcionId);
     }
 
+    @Override
+    public void procesarCancelacionApadrinamientoPorRefugio(Long apadrinamientoId, Long padrinoId,
+                                                              Long animalId, String animalNombre, String motivo) {
+        String titulo = "Apadrinamiento cancelado por el refugio";
+        String mensaje = String.format(
+                "El refugio canceló tu apadrinamiento a %s.%s",
+                animalNombre,
+                (motivo != null && !motivo.isBlank()) ? " Motivo: " + motivo : "");
+        notificar(padrinoId, TipoNotificacion.APADRINAMIENTO_CANCELADO_POR_REFUGIO, titulo, mensaje, apadrinamientoId);
+    }
+
     private void notificar(Long usuarioId, TipoNotificacion tipo, String titulo, String mensaje, Long entidadRelacionadaId) {
         Notificacion notificacion = new Notificacion(
                 null, usuarioId, tipo, titulo, mensaje, entidadRelacionadaId, false, LocalDateTime.now()

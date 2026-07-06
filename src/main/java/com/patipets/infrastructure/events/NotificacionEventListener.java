@@ -1,6 +1,7 @@
 package com.patipets.infrastructure.events;
 
 import com.patipets.core.application.events.AlertaUrgentePublicadaEvent;
+import com.patipets.core.application.events.ApadrinamientoCanceladoPorRefugioEvent;
 import com.patipets.core.application.events.EstadoSolicitudCambiadoEvent;
 import com.patipets.core.application.events.InscripcionVoluntariadoCanceladaEvent;
 import com.patipets.core.application.events.SolicitudRefugioCambiadaEvent;
@@ -46,5 +47,13 @@ public class NotificacionEventListener {
         gestionNotificacionUseCase.procesarCancelacionInscripcionVoluntariado(
                 evento.getInscripcionId(), evento.getVoluntarioId(), evento.getAlertaId(),
                 evento.getAlertaTitulo(), evento.getMotivo());
+    }
+
+    @Async
+    @EventListener
+    public void onApadrinamientoCanceladoPorRefugio(ApadrinamientoCanceladoPorRefugioEvent evento) {
+        gestionNotificacionUseCase.procesarCancelacionApadrinamientoPorRefugio(
+                evento.getApadrinamientoId(), evento.getPadrinoId(), evento.getAnimalId(),
+                evento.getAnimalNombre(), evento.getMotivo());
     }
 }

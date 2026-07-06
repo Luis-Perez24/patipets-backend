@@ -187,10 +187,11 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionApadrinamientoUseCase gestionApadrinamientoUseCase() {
+    public GestionApadrinamientoUseCase gestionApadrinamientoUseCase(EventPublisherPort eventPublisher) {
         return new GestionApadrinamientoService(
                 new ApadrinamientoRepositoryAdapter(apadrinamientoJpaRepository),
                 new AnimalRepositoryAdapter(animalJpaRepository),
-                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository));
+                new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
+                eventPublisher);
     }
 }

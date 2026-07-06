@@ -1,11 +1,15 @@
 package com.patipets.infrastructure.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.patipets.core.domain.models.Apadrinamiento;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApadrinamientoResponseDTO {
 
     private Long id;
     private Long padrinoId;
+    private String padrinoNombre;
+    private String padrinoEmail;
     private Long animalId;
     private Long refugioId;
     private String tipoApoyo;
@@ -30,6 +34,10 @@ public class ApadrinamientoResponseDTO {
 
     public Long getId() { return id; }
     public Long getPadrinoId() { return padrinoId; }
+    public String getPadrinoNombre() { return padrinoNombre; }
+    public void setPadrinoNombre(String padrinoNombre) { this.padrinoNombre = padrinoNombre; }
+    public String getPadrinoEmail() { return padrinoEmail; }
+    public void setPadrinoEmail(String padrinoEmail) { this.padrinoEmail = padrinoEmail; }
     public Long getAnimalId() { return animalId; }
     public Long getRefugioId() { return refugioId; }
     public String getTipoApoyo() { return tipoApoyo; }

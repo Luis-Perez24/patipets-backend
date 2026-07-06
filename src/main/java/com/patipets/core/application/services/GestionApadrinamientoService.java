@@ -1,13 +1,15 @@
 package com.patipets.core.application.services;
 
-import com.patipets.core.application.ports.output.ApadrinamientoRepositoryPort;
+import com.patipets.core.application.events.ApadrinamientoCanceladoPorRefugioEvent;
 import com.patipets.core.application.ports.output.AnimalRepositoryPort;
+import com.patipets.core.application.ports.output.ApadrinamientoRepositoryPort;
+import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
 import com.patipets.core.application.useCase.GestionApadrinamientoUseCase;
 import com.patipets.core.domain.enums.EstadoAnimal;
 import com.patipets.core.domain.enums.TipoApoyo;
-import com.patipets.core.domain.models.Apadrinamiento;
 import com.patipets.core.domain.models.Animal;
+import com.patipets.core.domain.models.Apadrinamiento;
 import com.patipets.core.domain.models.Refugio;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,13 +19,16 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
     private final ApadrinamientoRepositoryPort apadrinamientoRepository;
     private final AnimalRepositoryPort animalRepository;
     private final RefugioRepositoryPort refugioRepository;
+    private final EventPublisherPort eventPublisher;
 
     public GestionApadrinamientoService(ApadrinamientoRepositoryPort apadrinamientoRepository,
                                          AnimalRepositoryPort animalRepository,
-                                         RefugioRepositoryPort refugioRepository) {
+                                         RefugioRepositoryPort refugioRepository,
+                                         EventPublisherPort eventPublisher) {
         this.apadrinamientoRepository = apadrinamientoRepository;
         this.animalRepository = animalRepository;
         this.refugioRepository = refugioRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -67,6 +72,32 @@ public class GestionApadrinamientoService implements GestionApadrinamientoUseCas
                 apadrinamiento.getFechaInicio(), false
         );
         return apadrinamientoRepository.save(cancelado);
+    }
+
+    @Override
+    public Apadrinamiento cancelarPorRefugio(Long id, Long refugioId, String motivo) {
+        Apadrinamiento apadrinamiento = apadrinamientoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Apadrinamiento no encontrado: " + id));
+        if (!apadrinamiento.getRefugioId().equals(refugioId)) {
+            throw new IllegalArgumentException("El apadrinamiento no pertenece a este refugio");
+        }
+        if (!apadrinamiento.isActivo()) {
+            throw new IllegalStateException("El apadrinamiento ya está cancelado");
+        }
+        Apadrinamiento cancelado = new Apadrinamiento(
+                id, apadrinamiento.getPadrinoId(), apadrinamiento.getAnimalId(),
+                apadrinamiento.getRefugioId(), apadrinamiento.getTipoApoyo(),
+                apadrinamiento.getCompromiso(),
+                apadrinamiento.getFechaInicio(), false
+        );
+        Apadrinamiento guardado = apadrinamientoRepository.save(cancelado);
+        String nombreAnimal = animalRepository.findById(guardado.getAnimalId())
+                .map(Animal::getNombre)
+                .orElse("el animal");
+        eventPublisher.publicar(new ApadrinamientoCanceladoPorRefugioEvent(
+                guardado.getId(), guardado.getPadrinoId(), guardado.getAnimalId(),
+                nombreAnimal, motivo));
+        return guardado;
     }
 
     @Override
