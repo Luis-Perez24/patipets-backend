@@ -94,13 +94,13 @@ public class AdopcionController {
 
     @GetMapping("/refugio/{refugioId}/solicitudes")
     @PreAuthorize("hasRole('ADMIN') or hasRole('REFUGIO')")
-    public ResponseEntity<ApiResponseDTO<List<SolicitudAdopcionResponseDTO>>> solicitudesPorRefugio(
+    public ResponseEntity<ApiResponseDTO<List<MiPostulacionResponseDTO>>> solicitudesPorRefugio(
             Authentication authentication,
             @PathVariable Long refugioId) {
         refugioAccessGuard.verificar((Usuario) authentication.getPrincipal(), refugioId);
         List<SolicitudAdopcion> solicitudes = gestionAnimalUseCase.listarSolicitudesPorRefugio(refugioId);
         var dto = solicitudes.stream()
-                .map(SolicitudAdopcionResponseDTO::fromDomain)
+                .map(this::enriquecer)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }

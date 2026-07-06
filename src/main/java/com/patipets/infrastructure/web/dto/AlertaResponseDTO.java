@@ -16,6 +16,7 @@ public class AlertaResponseDTO {
     private String tipoAyuda;
     private String fecha;
     private String perfilRequerido;
+    private String refugioUbicacion;
 
     public static AlertaResponseDTO fromDomain(Alerta alerta) {
         AlertaResponseDTO dto = new AlertaResponseDTO();
@@ -40,6 +41,8 @@ public class AlertaResponseDTO {
     public Long getRefugioId() { return refugioId; }
     public String getRefugioNombre() { return refugioNombre; }
     public void setRefugioNombre(String refugioNombre) { this.refugioNombre = refugioNombre; }
+    public String getRefugioUbicacion() { return refugioUbicacion; }
+    public void setRefugioUbicacion(String refugioUbicacion) { this.refugioUbicacion = refugioUbicacion; }
     public Long getCreadoPor() { return creadoPor; }
     public boolean isActiva() { return activa; }
     public String getCreatedAt() { return createdAt; }

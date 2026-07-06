@@ -202,7 +202,16 @@ public class AlertaController {
 
     private AlertaResponseDTO enriquecerAlerta(AlertaResponseDTO dto) {
         refugioRepository.findById(dto.getRefugioId())
-                .ifPresent(r -> dto.setRefugioNombre(r.getNombre()));
+                .ifPresent(r -> {
+                    dto.setRefugioNombre(r.getNombre());
+                    String dir = r.getDireccion();
+                    String region = r.getRegion();
+                    String loc = dir != null ? dir : "";
+                    if (region != null) {
+                        loc = loc.isEmpty() ? region : loc + ", " + region;
+                    }
+                    dto.setRefugioUbicacion(loc);
+                });
         return dto;
     }
 
