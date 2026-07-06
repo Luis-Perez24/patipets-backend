@@ -35,31 +35,45 @@ deploy:
     - echo "DEBUG deploy_key lineas=$(wc -l < ~/.ssh/deploy_key) bytes=$(wc -c < ~/.ssh/deploy_key)"
     - ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
   script:
-    - ssh -i ~/.ssh/deploy_key $VPS_USER@$VPS_HOST "
-        set -e
-        echo '=== [1/5] Pull latest code ==='
-        cd $DEPLOY_PATH
-        git checkout develop
-        git fetch --prune origin develop
-        git reset --hard origin/develop
+    - |
+      ssh -i ~/.ssh/deploy_key $VPS_USER@$VPS_HOST bash -s -- "$DEPLOY_PATH" "$APP" "$CI_COMMIT_SHA" <<'REMOTE_SCRIPT'
+      set -euo pipefail
+      DEPLOY_PATH="$1"
+      APP="$2"
+      EXPECTED_SHA="$3"
 
-        echo '=== [2/5] Export env vars ==='
-        set -a
-        source /home/user11/app/.env
-        set +a
+      echo "=== [1/6] Pull latest code ==="
+      cd "$DEPLOY_PATH"
+      git checkout develop
+      git fetch --prune origin develop
+      git reset --hard origin/develop
+      ACTUAL_SHA=$(git rev-parse HEAD)
+      echo "Commit esperado: $EXPECTED_SHA"
+      echo "Commit actual:   $ACTUAL_SHA"
+      if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+        echo "ERROR: el repo remoto no quedo en el commit esperado"
+        exit 1
+      fi
 
-        echo '=== [3/5] Stop existing containers ==='
-        export COMPOSE_PROJECT_NAME=patipets
-        cd $DEPLOY_PATH
-        docker compose -f $DEPLOY_PATH/docker-compose.yml down 2>/dev/null || true
+      echo "=== [2/6] Export env vars ==="
+      set -a
+      source /home/user11/app/.env
+      set +a
 
-        echo '=== [4/5] Build and restart ==='
-        docker compose -f $DEPLOY_PATH/docker-compose.yml build --no-cache $APP
-        docker compose -f $DEPLOY_PATH/docker-compose.yml up -d --remove-orphans
+      echo "=== [3/6] Stop existing containers ==="
+      export COMPOSE_PROJECT_NAME=patipets
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" down 2>/dev/null || true
 
-        echo '=== [5/5] Cleanup ==='
-        docker image prune -f
-      "
+      echo "=== [4/6] Build (no cache) ==="
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" build --no-cache "$APP"
+
+      echo "=== [5/6] Recreate and start ==="
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d --force-recreate --remove-orphans
+
+      echo "=== [6/6] Cleanup ==="
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" ps
+      docker image prune -f
+      REMOTE_SCRIPT
     - echo "DEPLOY_SHA=$CI_COMMIT_SHORT_SHA" > deploy.env
   artifacts:
     reports:
