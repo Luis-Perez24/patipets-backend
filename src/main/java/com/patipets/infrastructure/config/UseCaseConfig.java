@@ -2,11 +2,13 @@ package com.patipets.infrastructure.config;
 
 import com.patipets.core.application.ports.output.AlertaRepositoryPort;
 import com.patipets.core.application.ports.output.AnimalRepositoryPort;
+import com.patipets.core.application.ports.output.ApadrinamientoRepositoryPort;
 import com.patipets.core.application.ports.output.EmailSenderPort;
 import com.patipets.core.application.ports.output.EventPublisherPort;
 import com.patipets.core.application.ports.output.ImageStoragePort;
 import com.patipets.core.application.ports.output.PasswordEncoderPort;
 import com.patipets.core.application.ports.output.RefugioRepositoryPort;
+import com.patipets.core.application.ports.output.RespuestaAlertaRepositoryPort;
 import com.patipets.core.application.ports.output.UsuarioRepositoryPort;
 import com.patipets.core.application.services.AuthService;
 import com.patipets.core.application.services.ConsultarAdminDashboardService;
@@ -101,6 +103,11 @@ public class UseCaseConfig {
     }
 
     @Bean
+    public RespuestaAlertaRepositoryPort respuestaAlertaRepositoryPort() {
+        return new RespuestaAlertaRepositoryAdapter(respuestaAlertaJpaRepository);
+    }
+
+    @Bean
     public UsuarioRepositoryPort usuarioRepositoryPort() {
         return new UsuarioRepositoryAdapter(usuarioJpaRepository);
     }
@@ -168,11 +175,12 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionAlertaUseCase gestionAlertaUseCase(EventPublisherPort eventPublisher) {
+    public GestionAlertaUseCase gestionAlertaUseCase(EventPublisherPort eventPublisher,
+                                                       RespuestaAlertaRepositoryPort respuestaAlertaRepositoryPort) {
         return new GestionAlertaService(
                 new AlertaRepositoryAdapter(alertaJpaRepository),
                 eventPublisher,
-                new RespuestaAlertaRepositoryAdapter(respuestaAlertaJpaRepository));
+                respuestaAlertaRepositoryPort);
     }
 
     @Bean
@@ -187,9 +195,15 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public GestionApadrinamientoUseCase gestionApadrinamientoUseCase(EventPublisherPort eventPublisher) {
+    public ApadrinamientoRepositoryPort apadrinamientoRepositoryPort() {
+        return new ApadrinamientoRepositoryAdapter(apadrinamientoJpaRepository);
+    }
+
+    @Bean
+    public GestionApadrinamientoUseCase gestionApadrinamientoUseCase(EventPublisherPort eventPublisher,
+                                                                       ApadrinamientoRepositoryPort apadrinamientoRepositoryPort) {
         return new GestionApadrinamientoService(
-                new ApadrinamientoRepositoryAdapter(apadrinamientoJpaRepository),
+                apadrinamientoRepositoryPort,
                 new AnimalRepositoryAdapter(animalJpaRepository),
                 new RefugioRepositoryAdapter(refugioJpaRepository, usuarioRefugioJpaRepository, usuarioJpaRepository),
                 eventPublisher);
