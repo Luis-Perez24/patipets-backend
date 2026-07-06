@@ -19,17 +19,13 @@ import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.PaginatedResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.SolicitudAdopcionResponseDTO;
-import com.patipets.infrastructure.web.dto.request.RefugioSolicitudRequestDTO;
 import com.patipets.infrastructure.web.dto.request.UsuarioUpdateRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,29 +50,6 @@ public class AdminController {
         this.gestionUsuarioUseCase = gestionUsuarioUseCase;
         this.gestionAnimalUseCase = gestionAnimalUseCase;
         this.catalogoUseCase = catalogoUseCase;
-    }
-
-    @PostMapping(value = "/refugios", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> solicitarRefugio(
-            Authentication authentication,
-            @Valid @RequestPart("datos") RefugioSolicitudRequestDTO request,
-            @RequestPart(value = "archivo", required = false) MultipartFile archivo) {
-        try {
-            Usuario usuarioActual = (Usuario) authentication.getPrincipal();
-            Refugio refugio = gestionRefugioUseCase.solicitar(
-                    request.getNombre(), request.getDescripcion(), request.getDireccion(), request.getRegion(),
-                    request.getComuna(), request.getLatitud(), request.getLongitud(),
-                    request.getCapacidad(), request.getEmail(), request.getNumeroContacto(),
-                    usuarioActual.getId(), archivo);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponseDTO.ok("Solicitud de refugio creada", RefugioResponseDTO.fromDomain(refugio)));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponseDTO.error(e.getMessage()));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponseDTO.error("Error al procesar la imagen: " + e.getMessage()));
-        }
     }
 
     @GetMapping("/refugios/pendientes")

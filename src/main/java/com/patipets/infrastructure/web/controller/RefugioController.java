@@ -11,6 +11,7 @@ import com.patipets.infrastructure.web.dto.ApiResponseDTO;
 import com.patipets.infrastructure.web.dto.RefugioResponseDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalRequestDTO;
 import com.patipets.infrastructure.web.dto.request.AnimalUpdateRequestDTO;
+import com.patipets.infrastructure.web.dto.request.RefugioSolicitudRequestDTO;
 import com.patipets.infrastructure.web.dto.request.RefugioUpdateRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,6 +40,29 @@ public class RefugioController {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
         this.gestionRefugioUseCase = gestionRefugioUseCase;
         this.refugioAccessGuard = refugioAccessGuard;
+    }
+
+    @PostMapping(value = "/solicitar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponseDTO<RefugioResponseDTO>> solicitarRefugio(
+            Authentication authentication,
+            @Valid @RequestPart("datos") RefugioSolicitudRequestDTO request,
+            @RequestPart(value = "archivo", required = false) MultipartFile archivo) {
+        try {
+            Usuario usuarioActual = (Usuario) authentication.getPrincipal();
+            Refugio refugio = gestionRefugioUseCase.solicitar(
+                    request.getNombre(), request.getDescripcion(), request.getDireccion(), request.getRegion(),
+                    request.getComuna(), request.getLatitud(), request.getLongitud(),
+                    request.getCapacidad(), request.getEmail(), request.getNumeroContacto(),
+                    usuarioActual.getId(), archivo);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponseDTO.ok("Solicitud de refugio creada", RefugioResponseDTO.fromDomain(refugio)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponseDTO.error(e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponseDTO.error("Error al procesar la imagen: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/mis-solicitudes")
