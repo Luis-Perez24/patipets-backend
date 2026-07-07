@@ -66,13 +66,24 @@ public class PublicController {
             @RequestParam(required = false) Integer edadMin,
             @RequestParam(required = false) Integer edadMax,
             @RequestParam(required = false) String tamano,
-            @RequestParam(required = false) String region) {
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String q) {
 
-        List<Animal> animales = catalogoUseCase.obtenerTodos(especie, raza, edadMin, edadMax, tamano, region);
+        // Se pasa null a tamaño y región para hacer el filtrado complejo en memoria
+        List<Animal> animales = catalogoUseCase.obtenerTodos(especie, raza, edadMin, edadMax, null, null);
         Map<Long, Refugio> refugiosPorId = cargarRefugios(animales);
+        
+        List<String> tamanoList = (tamano != null && !tamano.isEmpty()) 
+                ? List.of(tamano.split(",")) 
+                : List.of();
+
         var dto = animales.stream()
                 .map(a -> enriquecer(AnimalResponseDTO.fromDomain(a),
                         refugiosPorId.get(a.getRefugioId())))
+                .filter(a -> region == null || region.isEmpty() || region.equalsIgnoreCase(a.getRefugioRegion()))
+                .filter(a -> tamanoList.isEmpty() || tamanoList.contains(a.getTamano()))
+                .filter(a -> q == null || q.isEmpty() || a.getNombre().toLowerCase().contains(q.toLowerCase()) || 
+                             (a.getRaza() != null && a.getRaza().toLowerCase().contains(q.toLowerCase())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
