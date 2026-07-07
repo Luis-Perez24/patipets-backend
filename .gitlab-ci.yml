@@ -20,6 +20,7 @@ test:
     - mvn test
   only:
     - develop
+    - main
 
 # Deploy via SSH (VPS_SSH_KEY es base64 de la clave privada, tipo Variable) y Ubuntu 20.04
 deploy:
@@ -102,3 +103,84 @@ verify:
         || (echo 'Frontend not reachable' && exit 1)
   only:
     - develop
+
+# Deploy a EC2 (producción AWS) via SSH (EC2_SSH_KEY es variable CI/CD tipo File, ya es una ruta a archivo)
+deploy_ec2:
+  stage: deploy
+  image: ubuntu:20.04
+  variables:
+    GIT_STRATEGY: none
+    DEPLOY_PATH_EC2: /home/ec2-user/app/patipets-backend
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq openssh-client > /dev/null 2>&1
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - cp "$EC2_SSH_KEY" ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+    - ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+  script:
+    - |
+      ssh -i ~/.ssh/deploy_key $EC2_USER@$EC2_HOST bash -s -- "$DEPLOY_PATH_EC2" "$APP" "$CI_COMMIT_SHA" <<'REMOTE_SCRIPT'
+      set -euo pipefail
+      DEPLOY_PATH="$1"
+      APP="$2"
+      EXPECTED_SHA="$3"
+
+      echo "=== [1/6] Pull latest code ==="
+      cd "$DEPLOY_PATH"
+      git checkout main
+      git fetch --prune origin main
+      git reset --hard "$EXPECTED_SHA"
+      ACTUAL_SHA=$(git rev-parse HEAD)
+      echo "Commit esperado: $EXPECTED_SHA"
+      echo "Commit actual:   $ACTUAL_SHA"
+      if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+        echo "ERROR: el repo remoto no quedo en el commit esperado"
+        exit 1
+      fi
+
+      echo "=== [2/6] Export env vars ==="
+      set -a
+      source /home/ec2-user/app/.env
+      set +a
+
+      echo "=== [3/6] Stop existing containers ==="
+      export COMPOSE_PROJECT_NAME=patipets
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" down 2>/dev/null || true
+
+      echo "=== [4/6] Build ==="
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" build "$APP"
+
+      echo "=== [5/6] Recreate and start ==="
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" up -d --force-recreate --remove-orphans
+
+      echo "=== [6/6] Cleanup ==="
+      docker compose -f "$DEPLOY_PATH/docker-compose.yml" ps
+      docker image prune -f
+      REMOTE_SCRIPT
+    - echo "DEPLOY_SHA=$CI_COMMIT_SHORT_SHA" > deploy.env
+  artifacts:
+    reports:
+      dotenv: deploy.env
+  only:
+    - main
+
+verify_ec2:
+  stage: verify
+  image: alpine:latest
+  variables:
+    GIT_STRATEGY: none
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      for i in $(seq 1 20); do
+        curl -sf http://$EC2_HOST/actuator/health && echo 'Health check passed' && break
+        echo "Esperando backend... intento $i/20"
+        sleep 3
+        if [ "$i" -eq 20 ]; then echo 'Health check failed' && exit 1; fi
+      done
+    - |
+      curl -sf http://$EC2_HOST/ \
+        && echo 'Frontend reachable' \
+        || (echo 'Frontend not reachable' && exit 1)
+  only:
+    - main
