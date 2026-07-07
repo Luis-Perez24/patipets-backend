@@ -25,6 +25,7 @@ public class SolicitudAdopcion {
     private final String descripcionEspacio;
     private final Boolean tieneNinos;
     private final Boolean tieneOtrasMascotas;
+    private final String detalleMascotas;
 
     public SolicitudAdopcion(Long id, Long animalId, Long adoptanteId, Long refugioId,
                               EstadoPostulacion estado, LocalDateTime fechaCreacion,
@@ -32,7 +33,7 @@ public class SolicitudAdopcion {
                               String numeroContacto, String direccion, NivelActividad nivelActividad,
                               Integer horasSolo, CuidadoVacaciones cuidadoVacaciones,
                               TipoVivienda tipoVivienda, String descripcionEspacio,
-                              Boolean tieneNinos, Boolean tieneOtrasMascotas) {
+                              Boolean tieneNinos, Boolean tieneOtrasMascotas, String detalleMascotas) {
         this.id = id;
         this.animalId = animalId;
         this.adoptanteId = adoptanteId;
@@ -50,6 +51,7 @@ public class SolicitudAdopcion {
         this.descripcionEspacio = descripcionEspacio;
         this.tieneNinos = tieneNinos;
         this.tieneOtrasMascotas = tieneOtrasMascotas;
+        this.detalleMascotas = detalleMascotas;
     }
 
     public Long getId() { return id; }
@@ -69,4 +71,5 @@ public class SolicitudAdopcion {
     public String getDescripcionEspacio() { return descripcionEspacio; }
     public Boolean getTieneNinos() { return tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
+    public String getDetalleMascotas() { return detalleMascotas; }
 }

@@ -59,6 +59,9 @@ public class SolicitudAdopcionEntity {
     @Column(name = "tiene_otras_mascotas", nullable = false)
     private Boolean tieneOtrasMascotas;
 
+    @Column(name = "detalle_mascotas", columnDefinition = "TEXT")
+    private String detalleMascotas;
+
     public SolicitudAdopcionEntity() {}
 
     public Long getId() { return id; }
@@ -95,4 +98,6 @@ public class SolicitudAdopcionEntity {
     public void setTieneNinos(Boolean tieneNinos) { this.tieneNinos = tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
     public void setTieneOtrasMascotas(Boolean tieneOtrasMascotas) { this.tieneOtrasMascotas = tieneOtrasMascotas; }
+    public String getDetalleMascotas() { return detalleMascotas; }
+    public void setDetalleMascotas(String detalleMascotas) { this.detalleMascotas = detalleMascotas; }
 }

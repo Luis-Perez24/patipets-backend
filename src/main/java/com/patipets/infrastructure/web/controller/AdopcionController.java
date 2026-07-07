@@ -63,7 +63,8 @@ public class AdopcionController {
                     request.getDireccion(), request.getNivelActividad(),
                     request.getHorasSolo(), request.getCuidadoVacaciones(),
                     request.getTipoVivienda(), request.getDescripcionEspacio(),
-                    request.getTieneNinos(), request.getTieneOtrasMascotas());
+                    request.getTieneNinos(), request.getTieneOtrasMascotas(),
+                    request.getDetalleMascotas());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Solicitud de adopción enviada",
                             SolicitudAdopcionResponseDTO.fromDomain(solicitud)));

@@ -179,7 +179,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
     public SolicitudAdopcion solicitar(Long animalId, Long adoptanteId, String nombreCompleto,
                                         String numeroContacto, String direccion, String nivelActividad,
                                         Integer horasSolo, String cuidadoVacaciones, String tipoVivienda,
-                                        String descripcionEspacio, Boolean tieneNinos, Boolean tieneOtrasMascotas) {
+                                        String descripcionEspacio, Boolean tieneNinos, Boolean tieneOtrasMascotas,
+                                        String detalleMascotas) {
         Animal animal = animalRepository.findById(animalId)
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + animalId));
         if (animal.getEstadoAdopcion() != EstadoAnimal.DISPONIBLE) {
@@ -188,6 +189,12 @@ public class GestionAnimalService implements GestionAnimalUseCase {
         if (refugioRepository.perteneceAUsuario(animal.getRefugioId(), adoptanteId)) {
             throw new IllegalArgumentException("No puedes adoptar un animal de tu propio refugio");
         }
+        boolean yaPostulo = solicitudRepository.findByAnimalId(animalId).stream()
+                .anyMatch(s -> s.getAdoptanteId().equals(adoptanteId)
+                        && s.getEstado() != EstadoPostulacion.RECHAZADA);
+        if (yaPostulo) {
+            throw new IllegalStateException("Ya tienes una postulación para este animal");
+        }
         SolicitudAdopcion solicitud = new SolicitudAdopcion(
                 null, animalId, adoptanteId, animal.getRefugioId(),
                 EstadoPostulacion.PENDIENTE, LocalDateTime.now(), LocalDateTime.now(),
@@ -195,7 +202,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 NivelActividad.valueOf(nivelActividad.toUpperCase()),
                 horasSolo, CuidadoVacaciones.valueOf(cuidadoVacaciones.toUpperCase()),
                 TipoVivienda.valueOf(tipoVivienda.toUpperCase()), descripcionEspacio,
-                tieneNinos, tieneOtrasMascotas
+                tieneNinos, tieneOtrasMascotas, detalleMascotas
         );
         return solicitudRepository.save(solicitud);
     }
@@ -236,7 +243,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 solicitud.getDireccion(), solicitud.getNivelActividad(),
                 solicitud.getHorasSolo(), solicitud.getCuidadoVacaciones(),
                 solicitud.getTipoVivienda(), solicitud.getDescripcionEspacio(),
-                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas()
+                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas(), solicitud.getDetalleMascotas()
         );
         Animal animal = animalRepository.findById(solicitud.getAnimalId())
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado"));
@@ -260,7 +267,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                         otra.getDireccion(), otra.getNivelActividad(),
                         otra.getHorasSolo(), otra.getCuidadoVacaciones(),
                         otra.getTipoVivienda(), otra.getDescripcionEspacio(),
-                        otra.getTieneNinos(), otra.getTieneOtrasMascotas()
+                        otra.getTieneNinos(), otra.getTieneOtrasMascotas(), otra.getDetalleMascotas()
                 ));
                 eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
                         otraRechazada.getId(), otraRechazada.getAdoptanteId(), otraRechazada.getAnimalId(),
@@ -299,7 +306,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 solicitud.getDireccion(), solicitud.getNivelActividad(),
                 solicitud.getHorasSolo(), solicitud.getCuidadoVacaciones(),
                 solicitud.getTipoVivienda(), solicitud.getDescripcionEspacio(),
-                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas()
+                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas(), solicitud.getDetalleMascotas()
         );
         SolicitudAdopcion guardada = solicitudRepository.save(completada);
         eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(
@@ -323,7 +330,7 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 solicitud.getDireccion(), solicitud.getNivelActividad(),
                 solicitud.getHorasSolo(), solicitud.getCuidadoVacaciones(),
                 solicitud.getTipoVivienda(), solicitud.getDescripcionEspacio(),
-                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas()
+                solicitud.getTieneNinos(), solicitud.getTieneOtrasMascotas(), solicitud.getDetalleMascotas()
         );
         Animal animal = animalRepository.findById(solicitud.getAnimalId())
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado"));

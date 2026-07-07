@@ -21,6 +21,7 @@ public class SolicitudAdopcionResponseDTO {
     private String descripcionEspacio;
     private Boolean tieneNinos;
     private Boolean tieneOtrasMascotas;
+    private String detalleMascotas;
 
     public static SolicitudAdopcionResponseDTO fromDomain(SolicitudAdopcion s) {
         SolicitudAdopcionResponseDTO dto = new SolicitudAdopcionResponseDTO();
@@ -41,6 +42,7 @@ public class SolicitudAdopcionResponseDTO {
         dto.descripcionEspacio = s.getDescripcionEspacio();
         dto.tieneNinos = s.getTieneNinos();
         dto.tieneOtrasMascotas = s.getTieneOtrasMascotas();
+        dto.detalleMascotas = s.getDetalleMascotas();
         return dto;
     }
 
@@ -61,4 +63,5 @@ public class SolicitudAdopcionResponseDTO {
     public String getDescripcionEspacio() { return descripcionEspacio; }
     public Boolean getTieneNinos() { return tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
+    public String getDetalleMascotas() { return detalleMascotas; }
 }

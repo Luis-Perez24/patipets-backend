@@ -25,6 +25,7 @@ public class MiPostulacionResponseDTO {
     private String descripcionEspacio;
     private Boolean tieneNinos;
     private Boolean tieneOtrasMascotas;
+    private String detalleMascotas;
     private String email;
     private String region;
     private String comuna;
@@ -51,6 +52,7 @@ public class MiPostulacionResponseDTO {
         dto.descripcionEspacio = s.getDescripcionEspacio();
         dto.tieneNinos = s.getTieneNinos();
         dto.tieneOtrasMascotas = s.getTieneOtrasMascotas();
+        dto.detalleMascotas = s.getDetalleMascotas();
         if (adoptante != null) {
             dto.email = adoptante.getEmail();
             dto.region = adoptante.getRegion();
@@ -78,6 +80,7 @@ public class MiPostulacionResponseDTO {
     public String getDescripcionEspacio() { return descripcionEspacio; }
     public Boolean getTieneNinos() { return tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
+    public String getDetalleMascotas() { return detalleMascotas; }
     public String getEmail() { return email; }
     public String getRegion() { return region; }
     public String getComuna() { return comuna; }

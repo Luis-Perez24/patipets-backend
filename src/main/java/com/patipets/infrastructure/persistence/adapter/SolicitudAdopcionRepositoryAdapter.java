@@ -84,7 +84,7 @@ public class SolicitudAdopcionRepositoryAdapter implements SolicitudAdopcionRepo
                 entity.getDireccion(), NivelActividad.valueOf(entity.getNivelActividad()),
                 entity.getHorasSolo(), CuidadoVacaciones.valueOf(entity.getCuidadoVacaciones()),
                 TipoVivienda.valueOf(entity.getTipoVivienda()), entity.getDescripcionEspacio(),
-                entity.getTieneNinos(), entity.getTieneOtrasMascotas()
+                entity.getTieneNinos(), entity.getTieneOtrasMascotas(), entity.getDetalleMascotas()
         );
     }
 
@@ -107,6 +107,7 @@ public class SolicitudAdopcionRepositoryAdapter implements SolicitudAdopcionRepo
         entity.setDescripcionEspacio(solicitud.getDescripcionEspacio());
         entity.setTieneNinos(solicitud.getTieneNinos());
         entity.setTieneOtrasMascotas(solicitud.getTieneOtrasMascotas());
+        entity.setDetalleMascotas(solicitud.getDetalleMascotas());
         return entity;
     }
 }

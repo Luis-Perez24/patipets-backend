@@ -24,7 +24,8 @@ public interface GestionAnimalUseCase {
     SolicitudAdopcion solicitar(Long animalId, Long adoptanteId, String nombreCompleto,
                                 String numeroContacto, String direccion, String nivelActividad,
                                 Integer horasSolo, String cuidadoVacaciones, String tipoVivienda,
-                                String descripcionEspacio, Boolean tieneNinos, Boolean tieneOtrasMascotas);
+                                String descripcionEspacio, Boolean tieneNinos, Boolean tieneOtrasMascotas,
+                                String detalleMascotas);
     List<SolicitudAdopcion> listarSolicitudesPorAdoptante(Long adoptanteId);
     List<SolicitudAdopcion> listarSolicitudesPorRefugio(Long refugioId);
     List<SolicitudAdopcion> listarSolicitudesPendientes(int page, int size);

@@ -39,6 +39,8 @@ public class SolicitudAdopcionRequestDTO {
     @NotNull(message = "es obligatorio")
     private Boolean tieneOtrasMascotas;
 
+    private String detalleMascotas;
+
     public SolicitudAdopcionRequestDTO() {}
 
     public Long getAnimalId() { return animalId; }
@@ -63,4 +65,6 @@ public class SolicitudAdopcionRequestDTO {
     public void setTieneNinos(Boolean tieneNinos) { this.tieneNinos = tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
     public void setTieneOtrasMascotas(Boolean tieneOtrasMascotas) { this.tieneOtrasMascotas = tieneOtrasMascotas; }
+    public String getDetalleMascotas() { return detalleMascotas; }
+    public void setDetalleMascotas(String detalleMascotas) { this.detalleMascotas = detalleMascotas; }
 }

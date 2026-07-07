@@ -26,6 +26,7 @@ public class AdminSolicitudAdopcionResponseDTO {
     private String descripcionEspacio;
     private Boolean tieneNinos;
     private Boolean tieneOtrasMascotas;
+    private String detalleMascotas;
 
     public static AdminSolicitudAdopcionResponseDTO fromDomain(SolicitudAdopcion s, Animal animal, Refugio refugio) {
         AdminSolicitudAdopcionResponseDTO dto = new AdminSolicitudAdopcionResponseDTO();
@@ -50,6 +51,7 @@ public class AdminSolicitudAdopcionResponseDTO {
         dto.descripcionEspacio = s.getDescripcionEspacio();
         dto.tieneNinos = s.getTieneNinos();
         dto.tieneOtrasMascotas = s.getTieneOtrasMascotas();
+        dto.detalleMascotas = s.getDetalleMascotas();
         return dto;
     }
 
@@ -73,4 +75,5 @@ public class AdminSolicitudAdopcionResponseDTO {
     public String getDescripcionEspacio() { return descripcionEspacio; }
     public Boolean getTieneNinos() { return tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
+    public String getDetalleMascotas() { return detalleMascotas; }
 }
