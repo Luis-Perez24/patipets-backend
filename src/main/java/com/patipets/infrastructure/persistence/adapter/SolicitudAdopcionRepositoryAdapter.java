@@ -36,13 +36,13 @@ public class SolicitudAdopcionRepositoryAdapter implements SolicitudAdopcionRepo
 
     @Override
     public List<SolicitudAdopcion> findByAdoptanteId(Long adoptanteId) {
-        return jpaRepository.findByAdoptanteId(adoptanteId)
+        return jpaRepository.findByAdoptanteIdOrderByFechaCreacionDesc(adoptanteId)
                 .stream().map(this::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<SolicitudAdopcion> findByRefugioId(Long refugioId) {
-        return jpaRepository.findByRefugioId(refugioId)
+        return jpaRepository.findByRefugioIdOrderByFechaCreacionDesc(refugioId)
                 .stream().map(this::toDomain).collect(Collectors.toList());
     }
 

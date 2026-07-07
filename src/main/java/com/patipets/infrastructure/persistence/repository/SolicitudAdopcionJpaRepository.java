@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface SolicitudAdopcionJpaRepository extends JpaRepository<SolicitudAdopcionEntity, Long> {
 
-    List<SolicitudAdopcionEntity> findByAdoptanteId(Long adoptanteId);
+    List<SolicitudAdopcionEntity> findByAdoptanteIdOrderByFechaCreacionDesc(Long adoptanteId);
 
-    List<SolicitudAdopcionEntity> findByRefugioId(Long refugioId);
+    List<SolicitudAdopcionEntity> findByRefugioIdOrderByFechaCreacionDesc(Long refugioId);
 
     List<SolicitudAdopcionEntity> findByAnimalId(Long animalId);
 
