@@ -46,7 +46,7 @@ deploy:
       cd "$DEPLOY_PATH"
       git checkout develop
       git fetch --prune origin develop
-      git reset --hard origin/develop
+      git reset --hard "$EXPECTED_SHA"
       ACTUAL_SHA=$(git rev-parse HEAD)
       echo "Commit esperado: $EXPECTED_SHA"
       echo "Commit actual:   $ACTUAL_SHA"
