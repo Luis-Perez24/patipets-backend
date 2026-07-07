@@ -148,12 +148,10 @@ public class AuthController {
             @Valid @RequestBody RecuperarRequestDTO request) {
         try {
             authUseCase.solicitarRecuperacionPassword(request.getEmail());
-            return ResponseEntity.ok(ApiResponseDTO.ok("Si el correo existe, se enviará un enlace de recuperación.", null));
         } catch (IllegalArgumentException | IllegalStateException e) {
-            // For security reasons, usually we still say "If the email exists..."
-            // but for simplicity in this project we just return the error.
-            return ResponseEntity.badRequest().body(ApiResponseDTO.error(e.getMessage()));
+            // No revelar si el correo existe o si la cuenta está desactivada (previene user enumeration)
         }
+        return ResponseEntity.ok(ApiResponseDTO.ok("Si el correo existe, se enviará un enlace de recuperación.", null));
     }
 
     @PostMapping("/restablecer")
