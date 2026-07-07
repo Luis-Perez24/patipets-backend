@@ -1,5 +1,7 @@
 # PatiPets Backend
 
+[DOCUMENTACIÓN GENERAL](https://gitlab.com/dci-project/arqsoft-dci/proyectos/1s2026/pati-pets/patipets-documentacion/-/blob/main/README.md)
+
 Backend para la plataforma de adopción de mascotas PatiPets.
 Arquitectura Hexagonal con Spring Boot 3.2.5, autenticación JWT,
 Flyway para migraciones de base de datos y Supabase como backend
