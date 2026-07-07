@@ -25,10 +25,15 @@ public class AnimalEntity {
 
     private String tamano;
 
-    private String personalidad;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "animal_personalidad", joinColumns = @JoinColumn(name = "animal_id"))
+    @Column(name = "rasgo")
+    private List<String> personalidad;
 
-    @Column(name = "estado_salud")
-    private String estadoSalud;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "animal_estado_salud", joinColumns = @JoinColumn(name = "animal_id"))
+    @Column(name = "estado")
+    private List<String> estadoSalud;
 
     @Column(columnDefinition = "TEXT")
     private String historia;
@@ -40,13 +45,16 @@ public class AnimalEntity {
     @Column(name = "refugio_id", nullable = false)
     private Long refugioId;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "animal_fotos", joinColumns = @JoinColumn(name = "animal_id"))
     @Column(name = "url_foto")
     private List<String> fotos;
 
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro;
+
+    private String sexo;
+    private Double peso;
 
     public AnimalEntity() {}
 
@@ -62,10 +70,10 @@ public class AnimalEntity {
     public void setEdad(Integer edad) { this.edad = edad; }
     public String getTamano() { return tamano; }
     public void setTamano(String tamano) { this.tamano = tamano; }
-    public String getPersonalidad() { return personalidad; }
-    public void setPersonalidad(String personalidad) { this.personalidad = personalidad; }
-    public String getEstadoSalud() { return estadoSalud; }
-    public void setEstadoSalud(String estadoSalud) { this.estadoSalud = estadoSalud; }
+    public List<String> getPersonalidad() { return personalidad; }
+    public void setPersonalidad(List<String> personalidad) { this.personalidad = personalidad; }
+    public List<String> getEstadoSalud() { return estadoSalud; }
+    public void setEstadoSalud(List<String> estadoSalud) { this.estadoSalud = estadoSalud; }
     public String getHistoria() { return historia; }
     public void setHistoria(String historia) { this.historia = historia; }
     public EstadoAnimal getEstadoAdopcion() { return estadoAdopcion; }
@@ -76,4 +84,8 @@ public class AnimalEntity {
     public void setFotos(List<String> fotos) { this.fotos = fotos; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
     public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }
+    public String getSexo() { return sexo; }
+    public void setSexo(String sexo) { this.sexo = sexo; }
+    public Double getPeso() { return peso; }
+    public void setPeso(Double peso) { this.peso = peso; }
 }

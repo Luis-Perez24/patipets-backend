@@ -8,13 +8,15 @@ import java.io.IOException;
 import java.util.List;
 
 public interface GestionAnimalUseCase {
-    Animal crearAnimal(String nombre, String especie, String raza, Integer edad,
-                       String tamano, String personalidad, String estadoSalud, String historia,
-                       Long refugioId, List<MultipartFile> archivos) throws IOException;
+    Animal crearAnimal(String nombre, String especie, String raza, Integer edad, String tamano,
+                       List<String> personalidad, List<String> estadoSalud, String historia, Long refugioId,
+                       List<MultipartFile> archivos, String sexo, Double peso) throws IOException;
+
     Animal actualizarAnimal(Long id, Long refugioId, String nombre, String especie, String raza,
-                            Integer edad, String tamano, String personalidad,
-                            String estadoSalud, String historia, String estadoAdopcion,
-                            List<String> fotosAMantener, List<MultipartFile> archivosNuevos) throws IOException;
+                            Integer edad, String tamano, List<String> personalidad,
+                            List<String> estadoSalud, String historia, String estadoAdopcion,
+                            List<String> fotosAMantener, List<MultipartFile> archivosNuevos,
+                            String sexo, Double peso) throws IOException;
     void eliminarAnimal(Long id, Long refugioId);
     Animal cambiarEstadoAnimal(Long id, String nuevoEstado);
     List<Animal> listarPorRefugio(Long refugioId);

@@ -14,10 +14,10 @@ public class AnimalResponseDTO {
     private Integer edad;
     private String tamano;
 
-    private String personalidad;
+    private List<String> personalidad;
 
     @JsonProperty("estado_salud")
-    private String estadoSalud;
+    private List<String> estadoSalud;
 
     private String historia;
 
@@ -50,6 +50,9 @@ public class AnimalResponseDTO {
     @JsonProperty("fecha_registro")
     private LocalDateTime fechaRegistro;
 
+    private String sexo;
+    private Double peso;
+
     public static AnimalResponseDTO fromDomain(Animal animal) {
         AnimalResponseDTO dto = new AnimalResponseDTO();
         dto.id = animal.getId();
@@ -65,6 +68,8 @@ public class AnimalResponseDTO {
         dto.refugioId = animal.getRefugioId();
         dto.fotos = animal.getFotos();
         dto.fechaRegistro = animal.getFechaRegistro();
+        dto.sexo = animal.getSexo();
+        dto.peso = animal.getPeso();
         return dto;
     }
 
@@ -74,8 +79,8 @@ public class AnimalResponseDTO {
     public String getRaza() { return raza; }
     public Integer getEdad() { return edad; }
     public String getTamano() { return tamano; }
-    public String getPersonalidad() { return personalidad; }
-    public String getEstadoSalud() { return estadoSalud; }
+    public List<String> getPersonalidad() { return personalidad; }
+    public List<String> getEstadoSalud() { return estadoSalud; }
     public String getHistoria() { return historia; }
     public String getEstadoAdopcion() { return estadoAdopcion; }
     public Long getRefugioId() { return refugioId; }
@@ -94,4 +99,6 @@ public class AnimalResponseDTO {
     public void setRefugioDireccion(String refugioDireccion) { this.refugioDireccion = refugioDireccion; }
     public void setRefugioRegion(String refugioRegion) { this.refugioRegion = refugioRegion; }
     public void setRefugioComuna(String refugioComuna) { this.refugioComuna = refugioComuna; }
+    public String getSexo() { return sexo; }
+    public Double getPeso() { return peso; }
 }

@@ -121,7 +121,9 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
                 null,
                 null,
                 entity.getFotos(),
-                entity.getFechaRegistro()
+                entity.getFechaRegistro(),
+                entity.getSexo(),
+                entity.getPeso()
         );
     }
 
@@ -140,6 +142,8 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
         entity.setRefugioId(animal.getRefugioId());
         entity.setFotos(animal.getFotos());
         entity.setFechaRegistro(animal.getFechaRegistro());
+        entity.setSexo(animal.getSexo());
+        entity.setPeso(animal.getPeso());
         return entity;
     }
 }

@@ -82,7 +82,7 @@ public class GestionNotificacionService implements GestionNotificacionUseCase {
         solicitudRepository.findByRefugioId(refugioId).forEach(s -> destinatarios.add(s.getAdoptanteId()));
 
         for (Long usuarioId : destinatarios) {
-            notificar(usuarioId, TipoNotificacion.ALERTA_URGENTE, titulo, mensaje, alertaId);
+            notificar(usuarioId, TipoNotificacion.ALERTA_URGENTE, titulo, mensaje, refugioId);
         }
     }
 

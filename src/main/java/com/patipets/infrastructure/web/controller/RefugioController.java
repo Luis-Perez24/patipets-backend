@@ -101,7 +101,8 @@ public class RefugioController {
             Animal animal = gestionAnimalUseCase.crearAnimal(
                     request.getNombre(), request.getEspecie(), request.getRaza(),
                     request.getEdad(), request.getTamano(), request.getPersonalidad(),
-                    request.getEstadoSalud(), request.getHistoria(), refugioId, archivos);
+                    request.getEstadoSalud(), request.getHistoria(), refugioId, archivos,
+                    request.getSexo(), request.getPeso());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponseDTO.ok("Animal creado", AnimalResponseDTO.fromDomain(animal)));
         } catch (IllegalArgumentException e) {
@@ -127,7 +128,8 @@ public class RefugioController {
                     animalId, refugioId, request.getNombre(), request.getEspecie(), request.getRaza(),
                     request.getEdad(), request.getTamano(), request.getPersonalidad(),
                     request.getEstadoSalud(), request.getHistoria(),
-                    request.getEstadoAdopcion(), request.getFotosAMantener(), archivos);
+                    request.getEstadoAdopcion(), request.getFotosAMantener(), archivos,
+                    request.getSexo(), request.getPeso());
             return ResponseEntity.ok(ApiResponseDTO.ok("Animal actualizado", AnimalResponseDTO.fromDomain(animal)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

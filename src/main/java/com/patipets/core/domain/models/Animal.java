@@ -11,8 +11,8 @@ public class Animal {
     private final String raza;
     private final Integer edad;
     private final String tamano;
-    private final String personalidad;
-    private final String estadoSalud;
+    private final List<String> personalidad;
+    private final List<String> estadoSalud;
     private final String historia;
     private final EstadoAnimal estadoAdopcion;
     private final Long refugioId;
@@ -21,10 +21,14 @@ public class Animal {
     private final List<String> fotos;
     private final LocalDateTime fechaRegistro;
 
+    private final String sexo;
+    private final Double peso;
+
     public Animal(Long id, String nombre, String especie, String raza, Integer edad,
-                  String tamano, String personalidad, String estadoSalud, String historia,
+                  String tamano, List<String> personalidad, List<String> estadoSalud, String historia,
                   EstadoAnimal estadoAdopcion, Long refugioId, String nombreRefugio,
-                  String regionRefugio, List<String> fotos, LocalDateTime fechaRegistro) {
+                  String regionRefugio, List<String> fotos, LocalDateTime fechaRegistro,
+                  String sexo, Double peso) {
         this.id = id;
         this.nombre = nombre;
         this.especie = especie;
@@ -40,6 +44,8 @@ public class Animal {
         this.regionRefugio = regionRefugio;
         this.fotos = fotos;
         this.fechaRegistro = fechaRegistro;
+        this.sexo = sexo;
+        this.peso = peso;
     }
 
     public Long getId() { return id; }
@@ -48,8 +54,8 @@ public class Animal {
     public String getRaza() { return raza; }
     public Integer getEdad() { return edad; }
     public String getTamano() { return tamano; }
-    public String getPersonalidad() { return personalidad; }
-    public String getEstadoSalud() { return estadoSalud; }
+    public List<String> getPersonalidad() { return personalidad; }
+    public List<String> getEstadoSalud() { return estadoSalud; }
     public String getHistoria() { return historia; }
     public EstadoAnimal getEstadoAdopcion() { return estadoAdopcion; }
     public Long getRefugioId() { return refugioId; }
@@ -57,4 +63,6 @@ public class Animal {
     public String getRegionRefugio() { return regionRefugio; }
     public List<String> getFotos() { return fotos; }
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
+    public String getSexo() { return sexo; }
+    public Double getPeso() { return peso; }
 }

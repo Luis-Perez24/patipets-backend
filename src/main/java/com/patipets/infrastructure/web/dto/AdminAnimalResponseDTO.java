@@ -14,10 +14,10 @@ public class AdminAnimalResponseDTO {
     private String raza;
     private Integer edad;
     private String tamano;
-    private String personalidad;
+    private List<String> personalidad;
 
     @JsonProperty("estado_salud")
-    private String estadoSalud;
+    private List<String> estadoSalud;
 
     private String historia;
 
@@ -60,8 +60,8 @@ public class AdminAnimalResponseDTO {
     public String getRaza() { return raza; }
     public Integer getEdad() { return edad; }
     public String getTamano() { return tamano; }
-    public String getPersonalidad() { return personalidad; }
-    public String getEstadoSalud() { return estadoSalud; }
+    public List<String> getPersonalidad() { return personalidad; }
+    public List<String> getEstadoSalud() { return estadoSalud; }
     public String getHistoria() { return historia; }
     public String getEstadoAdopcion() { return estadoAdopcion; }
     public Long getRefugioId() { return refugioId; }

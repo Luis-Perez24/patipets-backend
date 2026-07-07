@@ -48,8 +48,9 @@ public class GestionAnimalService implements GestionAnimalUseCase {
 
     @Override
     public Animal crearAnimal(String nombre, String especie, String raza, Integer edad,
-                               String tamano, String personalidad, String estadoSalud,
-                               String historia, Long refugioId, List<MultipartFile> archivos) throws IOException {
+                               String tamano, List<String> personalidad, List<String> estadoSalud,
+                               String historia, Long refugioId, List<MultipartFile> archivos,
+                               String sexo, Double peso) throws IOException {
         Refugio refugio = refugioRepository.findById(refugioId)
                 .orElseThrow(() -> new IllegalArgumentException("Refugio no encontrado: " + refugioId));
         if (refugio.getEstado() != EstadoRefugio.APROBADO) {
@@ -63,7 +64,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
         try {
             Animal animal = new Animal(
                     null, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
-                    EstadoAnimal.DISPONIBLE, refugioId, null, null, fotos, LocalDateTime.now()
+                    EstadoAnimal.DISPONIBLE, refugioId, null, null, fotos, LocalDateTime.now(),
+                    sexo, peso
             );
             return animalRepository.save(animal);
         } catch (RuntimeException e) {
@@ -74,9 +76,10 @@ public class GestionAnimalService implements GestionAnimalUseCase {
 
     @Override
     public Animal actualizarAnimal(Long id, Long refugioId, String nombre, String especie, String raza,
-                                    Integer edad, String tamano, String personalidad,
-                                    String estadoSalud, String historia, String estadoAdopcion,
-                                    List<String> fotosAMantener, List<MultipartFile> archivosNuevos) throws IOException {
+                                    Integer edad, String tamano, List<String> personalidad,
+                                    List<String> estadoSalud, String historia, String estadoAdopcion,
+                                    List<String> fotosAMantener, List<MultipartFile> archivosNuevos,
+                                    String sexo, Double peso) throws IOException {
         Animal existente = animalRepository.findById(id)
                 .filter(a -> a.getRefugioId().equals(refugioId))
                 .orElseThrow(() -> new IllegalArgumentException("Animal no encontrado: " + id));
@@ -101,7 +104,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
 
         Animal actualizado = new Animal(
                 id, nombre, especie, raza, edad, tamano, personalidad, estadoSalud, historia,
-                nuevoEstado, existente.getRefugioId(), null, null, fotosFinales, existente.getFechaRegistro()
+                nuevoEstado, existente.getRefugioId(), null, null, fotosFinales, existente.getFechaRegistro(),
+                sexo, peso
         );
 
         Animal guardado;
@@ -154,7 +158,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 existente.getRaza(), existente.getEdad(), existente.getTamano(),
                 existente.getPersonalidad(), existente.getEstadoSalud(),
                 existente.getHistoria(), estado, existente.getRefugioId(),
-                null, null, existente.getFotos(), existente.getFechaRegistro()
+                null, null, existente.getFotos(), existente.getFechaRegistro(),
+                existente.getSexo(), existente.getPeso()
         );
         return animalRepository.save(actualizado);
     }
@@ -239,7 +244,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
                 animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
                 animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.EN_PROCESO,
-                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
+                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro(),
+                animal.getSexo(), animal.getPeso()
         ));
 
         List<SolicitudAdopcion> otrasPendientes = solicitudRepository.findByAnimalIdAndEstado(
@@ -282,7 +288,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
                 animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
                 animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.ADOPTADO,
-                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
+                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro(),
+                animal.getSexo(), animal.getPeso()
         ));
         SolicitudAdopcion completada = new SolicitudAdopcion(
                 solicitudId, solicitud.getAnimalId(), solicitud.getAdoptanteId(),
@@ -324,7 +331,8 @@ public class GestionAnimalService implements GestionAnimalUseCase {
                 animal.getId(), animal.getNombre(), animal.getEspecie(), animal.getRaza(),
                 animal.getEdad(), animal.getTamano(), animal.getPersonalidad(),
                 animal.getEstadoSalud(), animal.getHistoria(), EstadoAnimal.DISPONIBLE,
-                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro()
+                animal.getRefugioId(), null, null, animal.getFotos(), animal.getFechaRegistro(),
+                animal.getSexo(), animal.getPeso()
         ));
         SolicitudAdopcion guardada = solicitudRepository.save(actualizada);
         eventPublisher.publicar(new EstadoSolicitudCambiadoEvent(

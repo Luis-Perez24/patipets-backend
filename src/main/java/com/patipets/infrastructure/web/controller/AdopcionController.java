@@ -29,22 +29,26 @@ public class AdopcionController {
     private final GestionAnimalUseCase gestionAnimalUseCase;
     private final GestionRefugioUseCase gestionRefugioUseCase;
     private final ConsultarCatalogoPublicoUseCase catalogoUseCase;
+    private final com.patipets.core.application.useCase.GestionUsuarioUseCase gestionUsuarioUseCase;
     private final RefugioAccessGuard refugioAccessGuard;
 
     public AdopcionController(GestionAnimalUseCase gestionAnimalUseCase,
                                GestionRefugioUseCase gestionRefugioUseCase,
                                ConsultarCatalogoPublicoUseCase catalogoUseCase,
+                               com.patipets.core.application.useCase.GestionUsuarioUseCase gestionUsuarioUseCase,
                                RefugioAccessGuard refugioAccessGuard) {
         this.gestionAnimalUseCase = gestionAnimalUseCase;
         this.gestionRefugioUseCase = gestionRefugioUseCase;
         this.catalogoUseCase = catalogoUseCase;
+        this.gestionUsuarioUseCase = gestionUsuarioUseCase;
         this.refugioAccessGuard = refugioAccessGuard;
     }
 
     private MiPostulacionResponseDTO enriquecer(SolicitudAdopcion solicitud) {
         Animal animal = catalogoUseCase.obtenerPorId(solicitud.getAnimalId()).orElse(null);
         Refugio refugio = gestionRefugioUseCase.obtenerPorId(solicitud.getRefugioId()).orElse(null);
-        return MiPostulacionResponseDTO.fromDomain(solicitud, animal, refugio);
+        Usuario adoptante = gestionUsuarioUseCase.obtener(solicitud.getAdoptanteId());
+        return MiPostulacionResponseDTO.fromDomain(solicitud, animal, refugio, adoptante);
     }
 
     @PostMapping("/solicitar")

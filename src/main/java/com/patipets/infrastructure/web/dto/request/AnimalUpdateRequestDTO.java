@@ -23,10 +23,9 @@ public class AnimalUpdateRequestDTO {
     @NotBlank(message = "es obligatorio")
     private String tamano;
 
-    private String personalidad;
+    private List<String> personalidad;
 
-    @NotBlank(message = "es obligatorio")
-    private String estadoSalud;
+    private List<String> estadoSalud;
 
     private String historia;
 
@@ -34,6 +33,11 @@ public class AnimalUpdateRequestDTO {
     private String estadoAdopcion;
 
     private List<String> fotosAMantener;
+
+    private String sexo;
+
+    @Positive(message = "debe ser un número positivo")
+    private Double peso;
 
     public AnimalUpdateRequestDTO() {}
 
@@ -47,14 +51,18 @@ public class AnimalUpdateRequestDTO {
     public void setEdad(Integer edad) { this.edad = edad; }
     public String getTamano() { return tamano; }
     public void setTamano(String tamano) { this.tamano = tamano; }
-    public String getPersonalidad() { return personalidad; }
-    public void setPersonalidad(String personalidad) { this.personalidad = personalidad; }
-    public String getEstadoSalud() { return estadoSalud; }
-    public void setEstadoSalud(String estadoSalud) { this.estadoSalud = estadoSalud; }
+    public List<String> getPersonalidad() { return personalidad; }
+    public void setPersonalidad(List<String> personalidad) { this.personalidad = personalidad; }
+    public List<String> getEstadoSalud() { return estadoSalud; }
+    public void setEstadoSalud(List<String> estadoSalud) { this.estadoSalud = estadoSalud; }
     public String getHistoria() { return historia; }
     public void setHistoria(String historia) { this.historia = historia; }
     public String getEstadoAdopcion() { return estadoAdopcion; }
     public void setEstadoAdopcion(String estadoAdopcion) { this.estadoAdopcion = estadoAdopcion; }
     public List<String> getFotosAMantener() { return fotosAMantener; }
     public void setFotosAMantener(List<String> fotosAMantener) { this.fotosAMantener = fotosAMantener; }
+    public String getSexo() { return sexo; }
+    public void setSexo(String sexo) { this.sexo = sexo; }
+    public Double getPeso() { return peso; }
+    public void setPeso(Double peso) { this.peso = peso; }
 }

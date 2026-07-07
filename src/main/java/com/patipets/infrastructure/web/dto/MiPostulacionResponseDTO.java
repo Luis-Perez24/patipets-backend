@@ -25,8 +25,11 @@ public class MiPostulacionResponseDTO {
     private String descripcionEspacio;
     private Boolean tieneNinos;
     private Boolean tieneOtrasMascotas;
+    private String email;
+    private String region;
+    private String comuna;
 
-    public static MiPostulacionResponseDTO fromDomain(SolicitudAdopcion s, Animal animal, Refugio refugio) {
+    public static MiPostulacionResponseDTO fromDomain(SolicitudAdopcion s, Animal animal, Refugio refugio, com.patipets.core.domain.models.Usuario adoptante) {
         MiPostulacionResponseDTO dto = new MiPostulacionResponseDTO();
         dto.id = s.getId();
         dto.estado = s.getEstado().name();
@@ -48,6 +51,11 @@ public class MiPostulacionResponseDTO {
         dto.descripcionEspacio = s.getDescripcionEspacio();
         dto.tieneNinos = s.getTieneNinos();
         dto.tieneOtrasMascotas = s.getTieneOtrasMascotas();
+        if (adoptante != null) {
+            dto.email = adoptante.getEmail();
+            dto.region = adoptante.getRegion();
+            dto.comuna = adoptante.getComuna();
+        }
         return dto;
     }
 
@@ -70,4 +78,7 @@ public class MiPostulacionResponseDTO {
     public String getDescripcionEspacio() { return descripcionEspacio; }
     public Boolean getTieneNinos() { return tieneNinos; }
     public Boolean getTieneOtrasMascotas() { return tieneOtrasMascotas; }
+    public String getEmail() { return email; }
+    public String getRegion() { return region; }
+    public String getComuna() { return comuna; }
 }
