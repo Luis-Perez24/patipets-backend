@@ -4,7 +4,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+![License](https://img.shields.io/badge/license-Noncommercial-lightgrey)
 
 Backend para PatiPets, una plataforma web comunitaria que conecta ciudadanos con refugios de animales para adoptar, ser voluntario o apadrinar. Construido con **arquitectura hexagonal (Ports & Adapters)**, autenticación **JWT propia** (sin Auth0/Firebase/servicios cloud de auth), migraciones con **Flyway** y **Supabase** local (Postgres + Storage) como backend de datos e imágenes.
 
@@ -206,4 +206,4 @@ Ver [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) para el modelo C4, justificac
 
 ## Licencia
 
-Distribuido bajo licencia MIT. Ver [`LICENSE`](LICENSE).
+Distribuido bajo [PolyForm Noncommercial License 1.0.0](LICENSE) — de uso libre para fines personales, educativos o de evaluación; **no autorizado para uso comercial** sin permiso del autor.
