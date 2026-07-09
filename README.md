@@ -1,11 +1,16 @@
 # PatiPets Backend
 
-[DOCUMENTACIÓN GENERAL](https://gitlab.com/dci-project/arqsoft-dci/proyectos/1s2026/pati-pets/patipets-documentacion/-/blob/main/README.md)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Backend para la plataforma de adopción de mascotas PatiPets.
-Arquitectura Hexagonal con Spring Boot 3.2.5, autenticación JWT,
-Flyway para migraciones de base de datos y Supabase como backend
-de datos y almacenamiento de imágenes.
+Backend para PatiPets, una plataforma web comunitaria que conecta ciudadanos con refugios de animales para adoptar, ser voluntario o apadrinar. Construido con **arquitectura hexagonal (Ports & Adapters)**, autenticación **JWT propia** (sin Auth0/Firebase/servicios cloud de auth), migraciones con **Flyway** y **Supabase** local (Postgres + Storage) como backend de datos e imágenes.
+
+Repo hermano: [`patipets-frontend`](https://github.com/Luis-Perez24/patipets-frontend) (Vue 3 + Pinia + Tailwind).
+
+Documentación de arquitectura detallada (C4, decisiones de diseño, tests, limitaciones): [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
 
 ---
 
@@ -21,12 +26,11 @@ de datos y almacenamiento de imágenes.
 
 ## Primeros Pasos
 
-### 1. Clonar y moverse a la rama
+### 1. Clonar el repositorio
 
 ```bash
-git clone git@gitlab.com:dci-project/arqsoft-dci/proyectos/1s2026/pati-pets/patipets-backend.git
+git clone git@github.com:Luis-Perez24/patipets-backend.git
 cd patipets-backend
-git checkout feature/luis
 ```
 
 ### 2. Iniciar Supabase local
@@ -193,3 +197,13 @@ curl -s http://localhost:8080/api/v1/admin/dashboard/estadisticas \
 | Supabase Storage | — |
 | Maven | — |
 | Docker | — |
+
+---
+
+## Arquitectura
+
+Ver [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) para el modelo C4, justificación del estilo hexagonal, cobertura de tests y limitaciones conocidas.
+
+## Licencia
+
+Distribuido bajo licencia MIT. Ver [`LICENSE`](LICENSE).
