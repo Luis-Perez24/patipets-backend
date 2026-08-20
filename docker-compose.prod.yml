@@ -1,0 +1,168 @@
+# Stack de produccion: la aplicacion y su infraestructura, todo dentro de
+# Docker. Se despliega en la VPS con Coolify, que lo levanta con `docker
+# compose` y le pone HTTPS por delante.
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# Diferencia con `docker-compose.yml` (desarrollo): ahi Supabase corre fuera de
+# Compose, levantado a mano con `npx supabase start`, y el backend lo alcanza
+# por `host.docker.internal`. Eso obliga a que la maquina tenga Node y el CLI de
+# Supabase corriendo permanentemente ademas de Docker, algo que Coolify no
+# gestiona y que dejaria la instalacion a medias tras cualquier reinicio. Aca
+# esas piezas son contenedores como cualquier otro.
+#
+# De los ~10 servicios que trae Supabase solo se declaran los dos que el
+# proyecto usa —Postgres y Storage—, coherente con `supabase/config.toml`, que
+# ya tiene auth, realtime, studio e inbucket en `enabled = false`: la
+# autenticacion es JWT propio y no hay suscripciones en tiempo real.
+#
+# El frontend no esta aca: vive en su propio repositorio y se despliega como una
+# aplicacion aparte, consumiendo este backend por su dominio publico.
+
+services:
+  # ── Base de datos ────────────────────────────────────────────────────────
+  # La imagen de Supabase y no `postgres:17` a secas porque storage-api espera
+  # encontrar el esquema `storage` y los roles (`supabase_storage_admin`,
+  # `service_role`, `anon`) ya creados. Reproducirlos a mano seria mantener una
+  # copia de las migraciones de Supabase.
+  db:
+    image: supabase/postgres:15.8.1.060
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Los scripts corren una sola vez, al inicializar el volumen. Van montados
+      # como archivo suelto y no como carpeta: el entrypoint de Postgres no
+      # entra en subdirectorios de /docker-entrypoint-initdb.d.
+      - ./docker/postgres/init/01-storage-role.sql:/docker-entrypoint-initdb.d/zzz-01-storage-role.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # ── Supabase Storage ─────────────────────────────────────────────────────
+  # Guarda las fotos de los animales. Aplica sus propias migraciones sobre el
+  # esquema `storage` al arrancar, por eso necesita la base sana antes.
+  storage:
+    image: supabase/storage-api:v1.19.3
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      # Las tres claves son del mismo par: los tokens estan firmados con el
+      # secreto, y storage-api valida contra el. Ver .env.prod.example.
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET:?falta SUPABASE_JWT_SECRET}
+      ANON_KEY: ${SUPABASE_ANON_KEY:?falta SUPABASE_ANON_KEY}
+      SERVICE_KEY: ${SUPABASE_SERVICE_KEY:?falta SUPABASE_SERVICE_KEY}
+      # Backend de archivos en disco. La alternativa es S3, que aqui solo
+      # agregaria un proveedor externo y su factura para guardar unas fotos.
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      FILE_SIZE_LIMIT: '52428800'
+      # Obligatorias aunque no se usen sin S3 ni multi-tenant.
+      TENANT_ID: patipets
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+      # Es un plan de pago en Supabase alojado; el backend ya redimensiona a
+      # 800x800 con Thumbnailator antes de subir.
+      ENABLE_IMAGE_TRANSFORMATION: 'false'
+    volumes:
+      - storage-data:/var/lib/storage
+
+  # ── Creacion del bucket ──────────────────────────────────────────────────
+  # En desarrollo el bucket lo declara `supabase/config.toml` y lo crea el CLI.
+  # Sin CLI hay que crearlo igual, y no se puede por SQL en la inicializacion de
+  # la base: las columnas que definen un bucket publico (`public`,
+  # `file_size_limit`, `allowed_mime_types`) las agrega storage-api con sus
+  # migraciones, que corren despues. Por eso se hace contra su API, ya migrada.
+  #
+  # Corre una vez por despliegue y termina. El reintento hace de espera: la
+  # primera respuesta util es senal de que storage-api quedo listo.
+  #
+  # Se crea con POST pero se comprueba con GET, y no al reves, porque el codigo
+  # HTTP del POST no distingue nada: storage-api responde 400 tanto si el bucket
+  # ya existia como si falto la credencial —el detalle real va en el cuerpo—.
+  # El GET si es inequivoco: 200 solo si el bucket existe. Eso hace la tarea
+  # idempotente, que es lo que importa en el segundo despliegue y los siguientes.
+  storage-bootstrap:
+    image: curlimages/curl:8.11.1
+    restart: 'no'
+    depends_on:
+      - storage
+    environment:
+      SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+    entrypoint: ['sh', '-c']
+    command:
+      - |
+        for i in $$(seq 1 30); do
+          curl -s -o /tmp/post -X POST \
+            -H "Authorization: Bearer $$SERVICE_KEY" \
+            -H 'Content-Type: application/json' \
+            -d '{"id":"patipets","name":"patipets","public":true,"file_size_limit":52428800,"allowed_mime_types":["image/jpeg","image/png","image/webp"]}' \
+            http://storage:5000/bucket || true
+
+          code=$$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $$SERVICE_KEY" \
+            http://storage:5000/bucket/patipets) || true
+
+          if [ "$$code" = "200" ]; then
+            echo "bucket patipets listo"; exit 0
+          fi
+          echo "storage aun no responde, reintento $$i"; sleep 5
+        done
+        echo 'no se pudo crear el bucket; ultima respuesta del POST:'
+        cat /tmp/post; exit 1
+
+  # ── Gateway de Storage ───────────────────────────────────────────────────
+  # Traduce el prefijo /storage/v1/ que usa el backend. Es el unico servicio de
+  # Supabase con dominio publico: el navegador carga las fotos directo desde
+  # aca. Ver docker/gateway/nginx.conf.
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - storage
+    volumes:
+      - ./docker/gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  # ── Aplicacion ───────────────────────────────────────────────────────────
+  backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?falta JWT_SECRET}
+      # Para subir y borrar: por la red interna, sin salir a internet.
+      SUPABASE_URL: http://gateway
+      # Para construir las URL que se guardan en la base y terminan en el
+      # `src` de una etiqueta img. Tiene que ser el dominio publico con HTTPS,
+      # no un nombre de servicio: lo resuelve el navegador, no el contenedor.
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:?falta SUPABASE_PUBLIC_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      SUPABASE_STORAGE_BUCKET: patipets
+      MAIL_HOST: mailpit
+      MAIL_PORT: '1025'
+
+  # Buzon de pruebas: acepta el correo y lo retiene en su bandeja web en vez de
+  # entregarlo. Se mantiene en produccion a proposito —el proyecto no tiene
+  # dominio de correo ni proveedor SMTP contratado— para que los envios no
+  # hagan fallar el flujo de registro. Sustituirlo por un SMTP real es cambiar
+  # MAIL_HOST y MAIL_PORT.
+  mailpit:
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  storage-data:
