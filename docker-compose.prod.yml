@@ -1,40 +1,6 @@
-# Stack de produccion: la aplicacion y su infraestructura, todo dentro de
-# Docker. Se despliega en la VPS con Coolify, que lo levanta con `docker
-# compose` y le pone HTTPS por delante.
-#
-#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-#
-# Diferencia con `docker-compose.yml` (desarrollo): ahi Supabase corre fuera de
-# Compose, levantado a mano con `npx supabase start`, y el backend lo alcanza
-# por `host.docker.internal`. Eso obliga a que la maquina tenga Node y el CLI de
-# Supabase corriendo permanentemente ademas de Docker, algo que Coolify no
-# gestiona y que dejaria la instalacion a medias tras cualquier reinicio. Aca
-# esas piezas son contenedores como cualquier otro.
-#
-# De los ~10 servicios que trae Supabase solo se declaran los dos que el
-# proyecto usa —Postgres y Storage—, coherente con `supabase/config.toml`, que
-# ya tiene auth, realtime, studio e inbucket en `enabled = false`: la
-# autenticacion es JWT propio y no hay suscripciones en tiempo real.
-#
-# Una sola puerta al exterior: el frontend. Es el unico servicio con dominio
-# publico y reenvia por dentro lo que el navegador necesita —la API y la lectura
-# de fotos—. El backend, la base, el storage y su gateway no son alcanzables
-# desde internet.
-#
-# La alternativa era darle dominio propio al backend y al storage. Se descarto
-# porque no habria escondido nada: el SPA corre en el navegador del visitante,
-# asi que la API queda igual de publica se llame como se llame. Lo que si cambia
-# es la superficie: con una sola puerta todo el trafico pasa por el mismo
-# dominio detras de Cloudflare, y del storage se publica solo la ruta de
-# lectura, dejando la escritura y la administracion de buckets en la red
-# interna.
+# docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 services:
-  # ── Base de datos ────────────────────────────────────────────────────────
-  # La imagen de Supabase y no `postgres:17` a secas porque storage-api espera
-  # encontrar el esquema `storage` y los roles (`supabase_storage_admin`,
-  # `service_role`, `anon`) ya creados. Reproducirlos a mano seria mantener una
-  # copia de las migraciones de Supabase.
   db:
     build:
       context: ./docker/postgres
@@ -51,9 +17,6 @@ services:
       retries: 12
       start_period: 40s
 
-  # ── Supabase Storage ─────────────────────────────────────────────────────
-  # Guarda las fotos de los animales. Aplica sus propias migraciones sobre el
-  # esquema `storage` al arrancar, por eso necesita la base sana antes.
   storage:
     image: supabase/storage-api:v1.19.3
     restart: unless-stopped
@@ -62,41 +25,19 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
-      # Las tres claves son del mismo par: los tokens estan firmados con el
-      # secreto, y storage-api valida contra el. Ver .env.prod.example.
       PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET:?falta SUPABASE_JWT_SECRET}
       ANON_KEY: ${SUPABASE_ANON_KEY:?falta SUPABASE_ANON_KEY}
       SERVICE_KEY: ${SUPABASE_SERVICE_KEY:?falta SUPABASE_SERVICE_KEY}
-      # Backend de archivos en disco. La alternativa es S3, que aqui solo
-      # agregaria un proveedor externo y su factura para guardar unas fotos.
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
       FILE_SIZE_LIMIT: '52428800'
-      # Obligatorias aunque no se usen sin S3 ni multi-tenant.
       TENANT_ID: patipets
       REGION: local
       GLOBAL_S3_BUCKET: stub
-      # Es un plan de pago en Supabase alojado; el backend ya redimensiona a
-      # 800x800 con Thumbnailator antes de subir.
       ENABLE_IMAGE_TRANSFORMATION: 'false'
     volumes:
       - storage-data:/var/lib/storage
 
-  # ── Creacion del bucket ──────────────────────────────────────────────────
-  # En desarrollo el bucket lo declara `supabase/config.toml` y lo crea el CLI.
-  # Sin CLI hay que crearlo igual, y no se puede por SQL en la inicializacion de
-  # la base: las columnas que definen un bucket publico (`public`,
-  # `file_size_limit`, `allowed_mime_types`) las agrega storage-api con sus
-  # migraciones, que corren despues. Por eso se hace contra su API, ya migrada.
-  #
-  # Corre una vez por despliegue y termina. El reintento hace de espera: la
-  # primera respuesta util es senal de que storage-api quedo listo.
-  #
-  # Se crea con POST pero se comprueba con GET, y no al reves, porque el codigo
-  # HTTP del POST no distingue nada: storage-api responde 400 tanto si el bucket
-  # ya existia como si falto la credencial —el detalle real va en el cuerpo—.
-  # El GET si es inequivoco: 200 solo si el bucket existe. Eso hace la tarea
-  # idempotente, que es lo que importa en el segundo despliegue y los siguientes.
   storage-bootstrap:
     image: curlimages/curl:8.11.1
     restart: 'no'
@@ -126,11 +67,6 @@ services:
         echo 'no se pudo crear el bucket; ultima respuesta del POST:'
         cat /tmp/post; exit 1
 
-  # ── Gateway de Storage ───────────────────────────────────────────────────
-  # Traduce el prefijo /storage/v1/ que usa el backend. Sin dominio propio: solo
-  # se alcanza desde la red interna, sea por el backend (para subir y borrar) o
-  # por el frontend (que reexpone hacia afuera unicamente la ruta de lectura
-  # publica). Ver docker/gateway/nginx.conf.
   gateway:
     build:
       context: ./docker/gateway
@@ -138,7 +74,6 @@ services:
     depends_on:
       - storage
 
-  # ── Aplicacion ───────────────────────────────────────────────────────────
   backend:
     build: .
     restart: unless-stopped
@@ -150,41 +85,16 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?falta JWT_SECRET}
-      # Para subir y borrar: por la red interna, sin salir a internet.
       SUPABASE_URL: http://gateway
-      # Para construir las URL que se guardan en la base y terminan en el
-      # `src` de una etiqueta img. Tiene que ser el dominio publico con HTTPS,
-      # no un nombre de servicio: lo resuelve el navegador, no el contenedor.
-      # Es el mismo dominio del frontend, que reenvia esa ruta al gateway.
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:?falta SUPABASE_PUBLIC_URL}
       SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
       SUPABASE_STORAGE_BUCKET: patipets
       MAIL_HOST: mailpit
       MAIL_PORT: '1025'
 
-  # ── Frontend ─────────────────────────────────────────────────────────────
-  # Unico servicio con dominio publico: todo lo que entra desde internet pasa
-  # por aqui. Su nginx sirve la SPA y reenvia /api/v1 al backend y la lectura de
-  # fotos al gateway, de modo que el resto del stack no necesita estar expuesto.
-  #
-  # Se construye desde su repositorio, que es el propio de ese proyecto: el
-  # frontend es un repo aparte y no puede ser un directorio de este.
-  #
-  # Fijado a un commit y no a una rama, por la misma razon que las imagenes de
-  # arriba llevan version exacta: apuntar a `main` haria que reconstruir este
-  # mismo commit produjera un frontend distinto segun el dia, y una rotura en
-  # esa rama entraria sola en el proximo despliegue del backend.
-  #
-  # Al actualizar el frontend hay que subir este SHA. No es un tramite de mas:
-  # Coolify vigila este repositorio y no aquel, asi que el commit que cambia el
-  # SHA es justamente lo que dispara el despliegue.
-  #
-  # La API se llama por ruta relativa y no por un dominio propio: al viajar por
-  # el mismo origen no hay CORS de por medio ni una URL de backend incrustada en
-  # el bundle que haya que recompilar si cambia el dominio.
   frontend:
     build:
-      context: https://github.com/Luis-Perez24/patipets-frontend.git#05d02ad62cbbefe2b8a560f8891cba62ca7bbd82
+      context: https://github.com/Luis-Perez24/patipets-frontend.git#d960a01b1e5999762795ce6caa20486a36b6a965
       args:
         VITE_API_BASE_URL: /api/v1
     restart: unless-stopped
@@ -192,11 +102,6 @@ services:
       - backend
       - gateway
 
-  # Buzon de pruebas: acepta el correo y lo retiene en su bandeja web en vez de
-  # entregarlo. Se mantiene en produccion a proposito —el proyecto no tiene
-  # dominio de correo ni proveedor SMTP contratado— para que los envios no
-  # hagan fallar el flujo de registro. Sustituirlo por un SMTP real es cambiar
-  # MAIL_HOST y MAIL_PORT.
   mailpit:
     image: axllent/mailpit:v1.21
     restart: unless-stopped

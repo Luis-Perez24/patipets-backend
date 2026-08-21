@@ -1,6 +1,4 @@
 .env
-# Cualquier variante con secretos reales (.env.prod, .env.local), pero se
-# versionan las plantillas .example.
 .env.*
 !.env.example
 !.env.prod.example
