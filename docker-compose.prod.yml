@@ -16,8 +16,18 @@
 # ya tiene auth, realtime, studio e inbucket en `enabled = false`: la
 # autenticacion es JWT propio y no hay suscripciones en tiempo real.
 #
-# El frontend no esta aca: vive en su propio repositorio y se despliega como una
-# aplicacion aparte, consumiendo este backend por su dominio publico.
+# Una sola puerta al exterior: el frontend. Es el unico servicio con dominio
+# publico y reenvia por dentro lo que el navegador necesita —la API y la lectura
+# de fotos—. El backend, la base, el storage y su gateway no son alcanzables
+# desde internet.
+#
+# La alternativa era darle dominio propio al backend y al storage. Se descarto
+# porque no habria escondido nada: el SPA corre en el navegador del visitante,
+# asi que la API queda igual de publica se llame como se llame. Lo que si cambia
+# es la superficie: con una sola puerta todo el trafico pasa por el mismo
+# dominio detras de Cloudflare, y del storage se publica solo la ruta de
+# lectura, dejando la escritura y la administracion de buckets en la red
+# interna.
 
 services:
   # ── Base de datos ────────────────────────────────────────────────────────
@@ -120,9 +130,10 @@ services:
         cat /tmp/post; exit 1
 
   # ── Gateway de Storage ───────────────────────────────────────────────────
-  # Traduce el prefijo /storage/v1/ que usa el backend. Es el unico servicio de
-  # Supabase con dominio publico: el navegador carga las fotos directo desde
-  # aca. Ver docker/gateway/nginx.conf.
+  # Traduce el prefijo /storage/v1/ que usa el backend. Sin dominio propio: solo
+  # se alcanza desde la red interna, sea por el backend (para subir y borrar) o
+  # por el frontend (que reexpone hacia afuera unicamente la ruta de lectura
+  # publica). Ver docker/gateway/nginx.conf.
   gateway:
     image: nginx:1.27-alpine
     restart: unless-stopped
@@ -148,11 +159,36 @@ services:
       # Para construir las URL que se guardan en la base y terminan en el
       # `src` de una etiqueta img. Tiene que ser el dominio publico con HTTPS,
       # no un nombre de servicio: lo resuelve el navegador, no el contenedor.
+      # Es el mismo dominio del frontend, que reenvia esa ruta al gateway.
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:?falta SUPABASE_PUBLIC_URL}
       SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
       SUPABASE_STORAGE_BUCKET: patipets
       MAIL_HOST: mailpit
       MAIL_PORT: '1025'
+
+  # ── Frontend ─────────────────────────────────────────────────────────────
+  # Unico servicio con dominio publico: todo lo que entra desde internet pasa
+  # por aqui. Su nginx sirve la SPA y reenvia /api/v1 al backend y la lectura de
+  # fotos al gateway, de modo que el resto del stack no necesita estar expuesto.
+  #
+  # Se construye desde su repositorio, que es el propio de ese proyecto: el
+  # frontend es un repo aparte y no puede ser un directorio de este. La
+  # contrapartida es que Coolify vigila este repositorio y no aquel, asi que un
+  # cambio en el frontend no dispara despliegue solo; hay que redesplegar a
+  # mano. Es aceptable porque el frontend ya esta terminado.
+  #
+  # La API se llama por ruta relativa y no por un dominio propio: al viajar por
+  # el mismo origen no hay CORS de por medio ni una URL de backend incrustada en
+  # el bundle que haya que recompilar si cambia el dominio.
+  frontend:
+    build:
+      context: https://github.com/Luis-Perez24/patipets-frontend.git#main
+      args:
+        VITE_API_BASE_URL: /api/v1
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - gateway
 
   # Buzon de pruebas: acepta el correo y lo retiene en su bandeja web en vez de
   # entregarlo. Se mantiene en produccion a proposito —el proyecto no tiene
