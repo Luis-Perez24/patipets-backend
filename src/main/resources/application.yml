@@ -38,6 +38,15 @@ spring:
 server:
   port: 8080
 
+management:
+  health:
+    mail:
+      # El indicador por defecto abre una conexion SMTP en cada chequeo de
+      # salud y marca DOWN el agregado si mailpit no responde, aunque la API
+      # este sirviendo bien. El envio de correo real no depende de esto: solo
+      # se saca del veredicto de /actuator/health.
+      enabled: false
+
 notificaciones:
   email:
     remitente: no-reply@patipets.cl
