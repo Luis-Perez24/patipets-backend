@@ -36,17 +36,14 @@ services:
   # `service_role`, `anon`) ya creados. Reproducirlos a mano seria mantener una
   # copia de las migraciones de Supabase.
   db:
-    image: supabase/postgres:15.8.1.060
+    build:
+      context: ./docker/postgres
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-      # Los scripts corren una sola vez, al inicializar el volumen. Van montados
-      # como archivo suelto y no como carpeta: el entrypoint de Postgres no
-      # entra en subdirectorios de /docker-entrypoint-initdb.d.
-      - ./docker/postgres/init/01-storage-role.sql:/docker-entrypoint-initdb.d/zzz-01-storage-role.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d postgres']
       interval: 10s
@@ -135,12 +132,11 @@ services:
   # por el frontend (que reexpone hacia afuera unicamente la ruta de lectura
   # publica). Ver docker/gateway/nginx.conf.
   gateway:
-    image: nginx:1.27-alpine
+    build:
+      context: ./docker/gateway
     restart: unless-stopped
     depends_on:
       - storage
-    volumes:
-      - ./docker/gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
   # ── Aplicacion ───────────────────────────────────────────────────────────
   backend:
