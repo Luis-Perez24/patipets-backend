@@ -172,17 +172,23 @@ services:
   # fotos al gateway, de modo que el resto del stack no necesita estar expuesto.
   #
   # Se construye desde su repositorio, que es el propio de ese proyecto: el
-  # frontend es un repo aparte y no puede ser un directorio de este. La
-  # contrapartida es que Coolify vigila este repositorio y no aquel, asi que un
-  # cambio en el frontend no dispara despliegue solo; hay que redesplegar a
-  # mano. Es aceptable porque el frontend ya esta terminado.
+  # frontend es un repo aparte y no puede ser un directorio de este.
+  #
+  # Fijado a un commit y no a una rama, por la misma razon que las imagenes de
+  # arriba llevan version exacta: apuntar a `main` haria que reconstruir este
+  # mismo commit produjera un frontend distinto segun el dia, y una rotura en
+  # esa rama entraria sola en el proximo despliegue del backend.
+  #
+  # Al actualizar el frontend hay que subir este SHA. No es un tramite de mas:
+  # Coolify vigila este repositorio y no aquel, asi que el commit que cambia el
+  # SHA es justamente lo que dispara el despliegue.
   #
   # La API se llama por ruta relativa y no por un dominio propio: al viajar por
   # el mismo origen no hay CORS de por medio ni una URL de backend incrustada en
   # el bundle que haya que recompilar si cambia el dominio.
   frontend:
     build:
-      context: https://github.com/Luis-Perez24/patipets-frontend.git#main
+      context: https://github.com/Luis-Perez24/patipets-frontend.git#05d02ad62cbbefe2b8a560f8891cba62ca7bbd82
       args:
         VITE_API_BASE_URL: /api/v1
     restart: unless-stopped
