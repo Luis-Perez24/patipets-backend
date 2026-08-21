@@ -41,6 +41,7 @@ services:
   storage-bootstrap:
     image: curlimages/curl:8.11.1
     restart: 'no'
+    exclude_from_hc: true
     depends_on:
       - storage
     environment:
