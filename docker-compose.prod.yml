@@ -95,7 +95,7 @@ services:
 
   frontend:
     build:
-      context: https://github.com/Luis-Perez24/patipets-frontend.git#d960a01b1e5999762795ce6caa20486a36b6a965
+      context: https://github.com/Luis-Perez24/patipets-frontend.git#59536ddb307d103f217bf3bf400f4035ab017a01
       args:
         VITE_API_BASE_URL: /api/v1
     restart: unless-stopped
